@@ -1,13 +1,26 @@
 package com.example.slingshot;
 
+import android.Manifest;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -17,25 +30,41 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+public class MainActivity extends AppCompatActivity{
 
     public static final String TAG = "MainActivity";
-    private Sensor magnetic;
-    private Sensor accelero;
-    private SensorManager sensorManager;
-    private TextView magneticText;
-    private TextView acceleroText;
+    private Button configure;
+    private Button start;
+    private static final String[] PARAMS_TAKE_PHOTO = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+
+    private static final int RESULT_PARAMS_TAKE_PHOTO = 11;
+
+    private static final int REQUEST_PERMISSION_SETTING = 99;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        sensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
-        magnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        accelero = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magneticText = (TextView) findViewById(R.id.magnetic);
-        acceleroText = (TextView) findViewById(R.id.accelero);
+        start = (Button) findViewById(R.id.start);
+        configure = (Button) findViewById(R.id.configure);
+        configure.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this,Choice.class));
+            }
+        });
 
 //        String clientId = MqttClient.generateClientId();
 //        final MqttAndroidClient client =
@@ -75,40 +104,85 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 //            Log.e(TAG,e.getMessage());
 //        }
     }
+    private void takePhoto() {
+
+        if (canTakePhoto()) {
+
+
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)
+                || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+            Toast.makeText(this, "You should give permission", Toast.LENGTH_SHORT).show();
+            ActivityCompat.requestPermissions(this, netPermisssion(PARAMS_TAKE_PHOTO), RESULT_PARAMS_TAKE_PHOTO);
+
+        } else {
+            ActivityCompat.requestPermissions(this, netPermisssion(PARAMS_TAKE_PHOTO), RESULT_PARAMS_TAKE_PHOTO);
+        }
+
+    }
+
+    //  This method return  permission denied String[] so we can request again
+    private String[] netPermisssion(String[] wantedPermissions) {
+        ArrayList<String> result = new ArrayList<>();
+
+        for (String permission : wantedPermissions) {
+            if (!hasPermission(permission)) {
+                result.add(permission);
+            }
+        }
+
+        return (result.toArray(new String[result.size()]));
+
+    }
 
     @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-        if(sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD){
-            Log.i(TAG,"Magnetic");
-            float[] values = sensorEvent.values;
-            magneticText.setText("Magnetic:\n" + "x: " + values[0] + "\n" + "y: " + values[1] + "\n" +  "z: " + values[2] );
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+
+        if (requestCode == RESULT_PARAMS_TAKE_PHOTO) {
+
+            if (canTakePhoto()) {
+
+
+            } else if (!(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    || ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE))) {
+
+
+                final AlertDialog.Builder settingDialog = new AlertDialog.Builder(MainActivity.this);
+                settingDialog.setTitle("Permissioin");
+                settingDialog.setMessage("Now you need to enable permisssion from the setting because without permission this app won't run properly \n\n  goto -> setting -> appInfo");
+                settingDialog.setCancelable(false);
+
+                settingDialog.setPositiveButton("Setting", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                        dialogInterface.cancel();
+
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        Uri uri = Uri.fromParts("package", getPackageName(), null);
+                        intent.setData(uri);
+                        startActivityForResult(intent, REQUEST_PERMISSION_SETTING);
+                        Toast.makeText(getBaseContext(), "Go to Permissions to Grant all permission ENABLE", Toast.LENGTH_LONG).show();
+
+                    }
+                });
+                settingDialog.show();
+
+                Toast.makeText(this, "You need to grant permission from setting", Toast.LENGTH_SHORT).show();
+
+            }
 
         }
-        else if(sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
-            Log.i(TAG,"Accelerometer");
-            float[] values = sensorEvent.values;
-            acceleroText.setText("Accelerometer:\n" + "x: " + values[0] + "\n" + "y: " + values[1] + "\n" +  "z: " + values[2] );
-
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int i) {
 
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        sensorManager.registerListener( this,magnetic,SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener( this,accelero,SensorManager.SENSOR_DELAY_NORMAL);
+    private boolean canTakePhoto() {
+        return (hasPermission(Manifest.permission.CAMERA) && hasPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE));
+    }
+    private boolean hasPermission(String permissionString) {
+        return (ContextCompat.checkSelfPermission(this, permissionString) == PackageManager.PERMISSION_GRANTED);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        sensorManager.unregisterListener(this,magnetic);
-
-        sensorManager.unregisterListener(this,accelero);
-    }
 }
