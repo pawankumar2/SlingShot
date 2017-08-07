@@ -65,6 +65,7 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
             }
         };
         orientationEventListener = new OrientationEventListener(getApplicationContext()) {
+
             @Override
             public void onOrientationChanged(int i) {
                 i = i + 45;
@@ -206,8 +207,40 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
 
     protected void orientationChanged(int lastOrientation, int currentOrientation) {
 
+        if(currentOrientation == 1){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                cameraView.setForeground(getDrawable(R.drawable.overlay1));
+            }
+            params.setRotation(180);
+        }
+        else if(currentOrientation == 3){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                cameraView.setForeground(getDrawable(R.drawable.overlay3));
+            }
+            params.setRotation(0);
+        }
+        else if(getOrientation() == 0){
+            params.setRotation(270);
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                cameraView.setForeground(getDrawable(R.drawable.overlay));
+            }
+        }
+        camera.setParameters(params);
         Log.d(MainActivity.TAG, "Orientation changed to " + currentOrientation + " from " + lastOrientation);
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(orientationEventListener != null)
+            orientationEventListener.disable();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(orientationEventListener == null)
+            orientationEventListener.enable();
+    }
 }

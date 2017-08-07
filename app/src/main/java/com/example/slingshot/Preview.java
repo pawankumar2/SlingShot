@@ -30,7 +30,7 @@ public class Preview extends AppCompatActivity {
             Bitmap myBitmap = //rotate.rotateBitmap(imgFile.getAbsolutePath()
                     //,
                     BitmapFactory.decodeFile(imgFile.getAbsolutePath());//) ;
-            Bitmap frame = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.frame);
+            Bitmap frame = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.overlay);
             Bitmap finalImage = combineImages(frame, myBitmap);
             preview.setImageBitmap(finalImage);
             Log.i(MainActivity.TAG, "Bitmap added");
