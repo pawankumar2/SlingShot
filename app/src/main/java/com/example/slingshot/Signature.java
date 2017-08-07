@@ -6,12 +6,21 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.media.MediaScannerConnection;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class Signature extends AppCompatActivity {
 
@@ -19,7 +28,7 @@ public class Signature extends AppCompatActivity {
     private Paint mPaint;
     private Button done;
     private Button clear;
-    private ViewGroup area;
+    public ViewGroup area;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +37,16 @@ public class Signature extends AppCompatActivity {
         done = (Button) findViewById(R.id.done);
         clear = (Button) findViewById(R.id.clear);
         area = (ViewGroup) findViewById(R.id.area);
+        area.setDrawingCacheEnabled(true);
+        area.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         done.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                Bitmap bitmap = area.getDrawingCache();
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                saveSignature(stream.toByteArray());
+                dv.clear();
             }
         });
         clear.setOnClickListener(new View.OnClickListener() {
@@ -51,7 +66,47 @@ public class Signature extends AppCompatActivity {
         mPaint.setStrokeCap(Paint.Cap.ROUND);
         mPaint.setStrokeWidth(12);
     }
+    private static File getOutputMediaFile() {
 
+        File mediaStorageDir = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "SlingShot");
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.d(MainActivity.TAG, "failed to create directory");
+                return null;
+            }
+        }
+        // Create a media file name
+//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
+//                .format(new Date());
+        Long timeStamp = System.currentTimeMillis();
+        Log.i(MainActivity.TAG, String.valueOf(timeStamp));
+        File mediaFile;
+        mediaFile = new File(mediaStorageDir.getPath() + File.separator
+                + "IMG_" + timeStamp + ".jpg");
+        Log.i(MainActivity.TAG,"Got file");
+        Log.i(MainActivity.TAG,mediaFile.getParent() + " - " + mediaFile.getName() + " - " + mediaFile.getPath());
+
+        return mediaFile;
+    }
+    private String saveSignature(byte[] byteArray){
+        File pictureFile = getOutputMediaFile();
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            fos.write(byteArray);
+            Log.i(MainActivity.TAG,"file saved");
+            fos.close();
+            Log.i(MainActivity.TAG,"stream closed");
+        } catch (FileNotFoundException e) {
+            Log.e(MainActivity.TAG,e.getMessage());
+
+        } catch (IOException e) {
+            Log.e(MainActivity.TAG,e.getMessage());
+        }
+        MediaScannerConnection.scanFile(this, new String[] { pictureFile.getPath() }, new String[] { "image/jpeg" }, null);
+        return pictureFile.getPath();
+    }
     public class DrawingView extends View {
 
         public int width;
@@ -150,7 +205,7 @@ public class Signature extends AppCompatActivity {
         }
 
         public void clear() {
-
+            mCanvas.drawColor(Color.WHITE);
         }
     }
 }

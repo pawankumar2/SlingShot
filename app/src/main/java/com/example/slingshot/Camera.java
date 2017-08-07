@@ -6,10 +6,12 @@ import android.graphics.ImageFormat;
 import android.media.AudioManager;
 import android.media.MediaActionSound;
 import android.media.MediaScannerConnection;
+import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -20,6 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public class Camera extends AppCompatActivity implements SurfaceHolder.Callback {
@@ -30,6 +33,11 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
     private android.hardware.Camera.PictureCallback jpegCallback;
     private android.hardware.Camera camera;
     private android.hardware.Camera.Parameters params;
+    private int [] _orientationHistory = new int[5];
+    private int _orientationIndex;
+    private int _highestIndex = -1;
+    private int _currentOrientation;
+    private OrientationEventListener orientationEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +64,37 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
                 finish();
             }
         };
+        orientationEventListener = new OrientationEventListener(getApplicationContext()) {
+            @Override
+            public void onOrientationChanged(int i) {
+                i = i + 45;
+                if (i > 360) i = i - 360;
+                int orientation = i / 90;
+
+                //I use a history in order to smooth out noise
+                //and don't start sending events about the change until this history is filled
+                if (_orientationIndex > _highestIndex) {
+                    _highestIndex = _orientationIndex;
+                }
+                _orientationHistory[_orientationIndex] = orientation;
+                _orientationIndex ++;
+
+                if (_orientationIndex == _orientationHistory.length) {
+                    _orientationIndex = 0;
+                }
+
+                int lastOrientation = _currentOrientation;
+                //compute the orientation using above method
+                _currentOrientation = getOrientation();
+
+                if (_highestIndex == _orientationHistory.length - 1 && lastOrientation != _currentOrientation) {
+                    //enough data to say things changed
+                    orientationChanged(lastOrientation, _currentOrientation);
+
+                }
+            }
+        };
+        orientationEventListener.enable();
 
     }
 
@@ -157,6 +196,18 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
                 size = sizes.get(i);
         }
         return size;
+    }
+    protected int getOrientation(){
+        if (_highestIndex < 0) return 0;
+
+        Arrays.sort(_orientationHistory);
+        return _orientationHistory[_highestIndex / 2];
+    }
+
+    protected void orientationChanged(int lastOrientation, int currentOrientation) {
+
+
+        Log.d(MainActivity.TAG, "Orientation changed to " + currentOrientation + " from " + lastOrientation);
     }
 
 }
