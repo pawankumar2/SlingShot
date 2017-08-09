@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -30,8 +31,6 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity{
 
     public static final String TAG = "MainActivity";
-    private Button configure;
-    private Button start;
     private static final String[] PARAMS_TAKE_PHOTO = {
             Manifest.permission.CAMERA,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -46,20 +45,15 @@ public class MainActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        start = (Button) findViewById(R.id.start);
-        configure = (Button) findViewById(R.id.configure);
-        configure.setOnClickListener(new View.OnClickListener() {
+        takePhoto();
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
             @Override
-            public void onClick(View view) {
-
+            public void run() {
+                startActivity(new Intent (MainActivity.this,Camera.class));
+                finish();
             }
-        });
-        start.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this,Choice.class));
-            }
-        });
+        }, 2000);
 
 //        String clientId = MqttClient.generateClientId();
 //        final MqttAndroidClient client =

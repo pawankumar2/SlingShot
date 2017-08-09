@@ -1,6 +1,8 @@
 package com.example.slingshot;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -29,6 +31,7 @@ public class Signature extends AppCompatActivity {
     private Button done;
     private Button clear;
     public ViewGroup area;
+    private SharedPreferences pref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,7 @@ public class Signature extends AppCompatActivity {
         done = (Button) findViewById(R.id.done);
         clear = (Button) findViewById(R.id.clear);
         area = (ViewGroup) findViewById(R.id.area);
+        pref = getApplicationContext().getSharedPreferences("data",Context.MODE_PRIVATE);
         area.setDrawingCacheEnabled(true);
         area.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
         done.setOnClickListener(new View.OnClickListener() {
@@ -45,8 +49,12 @@ public class Signature extends AppCompatActivity {
                 Bitmap bitmap = area.getDrawingCache();
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-                saveSignature(stream.toByteArray());
+                String path = saveSignature(stream.toByteArray());
                 dv.clear();
+                SharedPreferences.Editor editor = pref.edit();
+                editor.putString("signature", path);
+                editor.commit();
+                startActivity(new Intent(Signature.this,Shot.class));
             }
         });
         clear.setOnClickListener(new View.OnClickListener() {

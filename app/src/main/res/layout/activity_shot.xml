@@ -4,15 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.slingshot.MainActivity"
-    android:orientation="vertical"
+    tools:context="com.example.slingshot.Shot"
     android:background="#000">
 
-    <ImageView
-        android:id="@+id/imageView"
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:src="@drawable/socialbuzz" />
+        android:text="Take a shot on the screen"
+        android:textSize="50sp"
+        android:textAlignment="center"
+        android:textColor="#fff"/>
 </RelativeLayout>

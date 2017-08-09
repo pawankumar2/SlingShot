@@ -5,11 +5,60 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.slingshot.Preview"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:weightSum="1"
+    android:layout_margin="10dp">
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:layout_gravity="center_horizontal"
+        android:layout_weight="0.03">
+
+        <CheckBox
+            android:id="@+id/signatureCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Signature"
+            android:textSize="20sp"
+            android:layout_column="0"/>
+
+        <CheckBox
+            android:id="@+id/nameCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textSize="20sp"
+            android:layout_column="1"
+            android:layout_marginLeft="40dp"/>
+    </GridLayout>
+
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/preview"
-        android:layout_gravity="center_vertical|center_horizontal"/>
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_weight="0.94"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:layout_weight="0.03">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Done"
+            android:id="@+id/moveForward"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Retake"
+            android:id="@+id/retake"
+            android:layout_marginLeft="40dp"/>
+    </LinearLayout>
 
 </LinearLayout>

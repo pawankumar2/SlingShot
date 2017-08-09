@@ -1,21 +1,53 @@
-<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?><LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.slingshot.Camera">
-    <SurfaceView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/cameraView"
-        android:foreground="@drawable/overlay"/>
-
-    <com.melnykov.fab.FloatingActionButton
-        android:id="@+id/capture"
+    android:orientation="vertical">
+    <LinearLayout
+        android:id="@+id/progressForm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center"
-        android:layout_marginBottom="10dp"/>
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_gravity="center">
 
-</FrameLayout>
+        <ProgressBar
+            android:id="@+id/previewProgress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="15sp" />
+
+        <TextView
+            android:id="@+id/previewText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Processing..."
+            android:layout_margin="10sp"
+            android:textSize="15dp"/>
+    </LinearLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="com.example.slingshot.Camera"
+        android:id="@+id/frameView">
+
+        <SurfaceView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/cameraView"
+            android:foreground="@drawable/overlay"/>
+
+        <com.melnykov.fab.FloatingActionButton
+            android:id="@+id/capture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:layout_marginBottom="10dp"/>
+
+    </FrameLayout>
+</LinearLayout>

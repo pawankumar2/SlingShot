@@ -1,11 +1,19 @@
 package com.example.slingshot;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.media.AudioManager;
 import android.media.MediaActionSound;
 import android.media.MediaScannerConnection;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -15,9 +23,11 @@ import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import com.melnykov.fab.FloatingActionButton;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -38,6 +48,9 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
     private int _highestIndex = -1;
     private int _currentOrientation;
     private OrientationEventListener orientationEventListener;
+    private View progressForm;
+    private ProgressBar progress;
+    private View previewForm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +58,9 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
         setContentView(R.layout.activity_camera);
         cameraView = (SurfaceView) findViewById(R.id.cameraView);
         capture = (FloatingActionButton) findViewById(R.id.capture);
+        progress = (ProgressBar) findViewById(R.id.previewProgress);
+        progressForm = findViewById(R.id.progressForm);
+        previewForm = findViewById(R.id.frameView);
         surfaceHolder = cameraView.getHolder();
         surfaceHolder.addCallback(this);
         capture.setOnClickListener(new View.OnClickListener() {
@@ -55,13 +71,44 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
         });
         jpegCallback = new android.hardware.Camera.PictureCallback() {
             @Override
-            public void onPictureTaken(byte[] bytes, android.hardware.Camera camera) {
+            public void onPictureTaken(final byte[] bytes, android.hardware.Camera camera) {
+                final int i = getOrientation();
                 shutterSound();
-                String path = saveImage(bytes);
-                Intent i = new Intent(Camera.this,Preview.class);
-                i.putExtra("path",path);
-                startActivity(i);
-                finish();
+                showProgress(true);
+                new AsyncTask<Object, Object, String>() {
+
+                    @Override
+                    protected String doInBackground(Object... strings) {
+
+                            int angle = 0;
+                            Bitmap frame =  BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.overlay);
+                            Bitmap image = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+                            Matrix matrix = new Matrix();
+                            if(i == 0)
+                                angle = 270;
+                            else if(i == 1)
+                                angle = 180;
+
+                            matrix.postRotate(angle);
+                            Bitmap rotatedBitmap = Bitmap.createBitmap(image , 0, 0, image.getWidth(), image.getHeight(), matrix, true);
+
+                            Bitmap combinedImage = combineImages(frame,rotatedBitmap);
+                            ByteArrayOutputStream boas = new ByteArrayOutputStream();
+                            combinedImage.compress(Bitmap.CompressFormat.JPEG,100,boas);
+                            String path = saveImage(boas.toByteArray());
+                            return path;
+                        }
+
+                    @Override
+                    protected void onPostExecute(String aVoid) {
+                        super.onPostExecute(aVoid);
+                        showProgress(false);
+                        Intent intent = new Intent(Camera.this,Preview.class);
+                        intent.putExtra("path",aVoid);
+                        startActivity(intent);
+                    }
+                }.execute();
+
             }
         };
         orientationEventListener = new OrientationEventListener(getApplicationContext()) {
@@ -99,6 +146,7 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
 
     }
 
+
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         camera = android.hardware.Camera.open(1);
@@ -111,7 +159,7 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
         params.setPictureFormat(ImageFormat.JPEG);
         params.setJpegQuality(100);
         params.setFlashMode(android.hardware.Camera.Parameters.FLASH_MODE_AUTO);
-        params.setRotation(270);
+        //params.setRotation(270);
         camera.setDisplayOrientation(90);
         camera.setParameters(params);
         try {
@@ -211,16 +259,16 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 cameraView.setForeground(getDrawable(R.drawable.overlay1));
             }
-            params.setRotation(180);
+           // params.setRotation(180);
         }
         else if(currentOrientation == 3){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 cameraView.setForeground(getDrawable(R.drawable.overlay3));
             }
-            params.setRotation(0);
+            //params.setRotation(0);
         }
         else if(getOrientation() == 0){
-            params.setRotation(270);
+            //params.setRotation(270);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 cameraView.setForeground(getDrawable(R.drawable.overlay));
@@ -228,6 +276,32 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
         }
         camera.setParameters(params);
         Log.d(MainActivity.TAG, "Orientation changed to " + currentOrientation + " from " + lastOrientation);
+    }
+    public Bitmap combineImages(Bitmap frame, Bitmap image) {
+
+        Bitmap cs = null;
+        Bitmap rs = null;
+
+        rs = Bitmap.createScaledBitmap(frame, image.getWidth(),
+                image.getHeight(), true);
+
+        Bitmap smallImage = Bitmap.createScaledBitmap(image,image.getWidth(),image.getHeight(),true);
+        cs = Bitmap.createBitmap(rs.getWidth(), rs.getHeight(),
+                Bitmap.Config.RGB_565);
+
+        Canvas comboImage = new Canvas(cs);
+
+        comboImage.drawBitmap(smallImage, 0, 0, null);
+        comboImage.drawBitmap(rs, 0, 0, null);
+
+
+        if (rs != null) {
+            rs.recycle();
+            rs = null;
+        }
+        Runtime.getRuntime().gc();
+
+        return cs;
     }
 
     @Override
@@ -242,5 +316,37 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
         super.onResume();
         if(orientationEventListener == null)
             orientationEventListener.enable();
+    }
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            previewForm.setVisibility(show ? View.GONE : View.VISIBLE);
+            previewForm.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    previewForm.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            progressForm.setVisibility(show ? View.VISIBLE : View.GONE);
+            progress.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    progressForm.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            progressForm.setVisibility(show ? View.VISIBLE : View.GONE);
+            previewForm.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
     }
 }
