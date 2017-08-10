@@ -75,6 +75,11 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
                 final int i = getOrientation();
                 shutterSound();
                 showProgress(true);
+                if(orientationEventListener != null)
+                    orientationEventListener.disable();
+                if(camera != null )
+                    camera.stopPreview();
+
                 new AsyncTask<Object, Object, String>() {
 
                     @Override
