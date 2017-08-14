@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -48,7 +49,7 @@ public class Signature extends AppCompatActivity {
             public void onClick(View view) {
                 Bitmap bitmap = area.getDrawingCache();
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 String path = saveSignature(stream.toByteArray());
                 dv.clear();
                 SharedPreferences.Editor editor = pref.edit();
@@ -72,7 +73,7 @@ public class Signature extends AppCompatActivity {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setStrokeCap(Paint.Cap.ROUND);
-        mPaint.setStrokeWidth(12);
+        mPaint.setStrokeWidth(6);
     }
     private static File getOutputMediaFile() {
 
@@ -92,7 +93,7 @@ public class Signature extends AppCompatActivity {
         Log.i(MainActivity.TAG, String.valueOf(timeStamp));
         File mediaFile;
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                + "IMG_" + timeStamp + ".jpg");
+                + "IMG_" + timeStamp + ".png");
         Log.i(MainActivity.TAG,"Got file");
         Log.i(MainActivity.TAG,mediaFile.getParent() + " - " + mediaFile.getName() + " - " + mediaFile.getPath());
 
@@ -112,7 +113,7 @@ public class Signature extends AppCompatActivity {
         } catch (IOException e) {
             Log.e(MainActivity.TAG,e.getMessage());
         }
-        MediaScannerConnection.scanFile(this, new String[] { pictureFile.getPath() }, new String[] { "image/jpeg" }, null);
+        MediaScannerConnection.scanFile(this, new String[] { pictureFile.getPath() }, new String[] { "image/png" }, null);
         return pictureFile.getPath();
     }
     public class DrawingView extends View {
@@ -135,7 +136,7 @@ public class Signature extends AppCompatActivity {
             circlePaint = new Paint();
             circlePath = new Path();
             circlePaint.setAntiAlias(true);
-            circlePaint.setColor(Color.BLUE);
+            circlePaint.setColor(Color.BLACK);
             circlePaint.setStyle(Paint.Style.STROKE);
             circlePaint.setStrokeJoin(Paint.Join.MITER);
             circlePaint.setStrokeWidth(4f);
@@ -213,7 +214,7 @@ public class Signature extends AppCompatActivity {
         }
 
         public void clear() {
-            mCanvas.drawColor(Color.WHITE);
+            mCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
         }
     }
 }

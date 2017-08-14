@@ -17,6 +17,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,14 +56,14 @@ public class Shot extends AppCompatActivity {
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
 // Change base URL to your upload server URL.
-        Service service = new Retrofit.Builder().baseUrl("http://192.168.0.18:80/image.php/").client(client).build().create(Service.class);
+        Service service = new Retrofit.Builder().baseUrl("http://" + ip.trim() + ":80/").client(client).build().create(Service.class);
 
 
 
         File file = new File(image);
 
         RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
-        MultipartBody.Part body = MultipartBody.Part.createFormData("upload","hello", reqFile);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("image",file.getName(), reqFile);
         RequestBody name2 = RequestBody.create(MediaType.parse("text/plain"), name);
 
         retrofit2.Call<okhttp3.ResponseBody> req = service.postImage(body, name2);
@@ -71,7 +72,11 @@ public class Shot extends AppCompatActivity {
             @Override
             public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
                 //Log.i(MainActivity.TAG,response.message());
-                Log.i(MainActivity.TAG,response.toString());
+                try {
+                    Log.i(MainActivity.TAG,response.body().string());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -82,7 +87,7 @@ public class Shot extends AppCompatActivity {
     }
     interface Service {
         @Multipart
-        @POST("/")
+        @POST("/image.php")
         Call<ResponseBody> postImage(@Part MultipartBody.Part image, @Part("name") RequestBody name);
     }
 }

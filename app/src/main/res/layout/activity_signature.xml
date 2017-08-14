@@ -23,7 +23,7 @@
         android:id="@+id/area"
         android:layout_below="@+id/done"
         android:layout_above="@+id/clear"
-        android:background="#fff"/>
+        android:background="@color/transparent"/>
 
     <Button
         android:layout_width="wrap_content"

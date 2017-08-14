@@ -40,7 +40,17 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/cameraView"
-            android:foreground="@drawable/overlay"/>
+            android:foreground="@drawable/frame1"/>
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:background="@color/transparent"
+            android:text="Swipe to change frame"
+            android:textColor="#000"
+            android:textSize="15sp" />
+
 
         <com.melnykov.fab.FloatingActionButton
             android:id="@+id/capture"

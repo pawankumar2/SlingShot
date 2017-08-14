@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/SlingShot.iml" filepath="$PROJECT_DIR$/SlingShot.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/slingshot.iml" filepath="$PROJECT_DIR$/slingshot.iml" />
     </modules>
   </component>
 </project>

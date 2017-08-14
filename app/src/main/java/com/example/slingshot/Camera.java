@@ -51,6 +51,10 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
     private View progressForm;
     private ProgressBar progress;
     private View previewForm;
+    private static final int frames[] = {R.drawable.frame1
+            ,R.drawable.frame2
+            ,R.drawable.frame3};
+    private int frameIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +90,14 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
                     protected String doInBackground(Object... strings) {
 
                             int angle = 0;
-                            Bitmap frame =  BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.overlay);
+                            int frame;
+                            if(frameIndex == frames.length)
+                                frame = frames[--frameIndex];
+                            else if (frameIndex == -1)
+                                frame = frames[++frameIndex];
+                            else
+                                frame = frames[frameIndex];
+                            Bitmap overlay =  BitmapFactory.decodeResource(getApplicationContext().getResources(), frame);
                             Bitmap image = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
                             Matrix matrix = new Matrix();
                             if(i == 0)
@@ -97,7 +108,7 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
                             matrix.postRotate(angle);
                             Bitmap rotatedBitmap = Bitmap.createBitmap(image , 0, 0, image.getWidth(), image.getHeight(), matrix, true);
 
-                            Bitmap combinedImage = combineImages(frame,rotatedBitmap);
+                            Bitmap combinedImage = combineImages(overlay,rotatedBitmap);
                             ByteArrayOutputStream boas = new ByteArrayOutputStream();
                             combinedImage.compress(Bitmap.CompressFormat.JPEG,100,boas);
                             String path = saveImage(boas.toByteArray());
@@ -149,6 +160,33 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
         };
         orientationEventListener.enable();
 
+        previewForm.setOnTouchListener(new OnSwipe(getApplicationContext()){
+
+            public void onSwipeRight() {
+                frameIndex--;
+                if(frameIndex >=0 && frameIndex < frames.length){
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        cameraView.setForeground(getDrawable(frames[frameIndex]));
+                    }
+                    Log.i(MainActivity.TAG,"frame changed -> left");}
+                else
+                    frameIndex++;
+
+
+            }
+            public void onSwipeLeft() {
+                frameIndex++;
+                if(frameIndex <frames.length){
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        cameraView.setForeground(getDrawable(frames[frameIndex]));
+                    }
+                    Log.i(MainActivity.TAG,"frame changed -> right ");}
+                else
+                    frameIndex--;
+            }
+
+        });
+
     }
 
 
@@ -173,6 +211,8 @@ public class Camera extends AppCompatActivity implements SurfaceHolder.Callback 
         } catch (Exception e) {
             Log.e(MainActivity.TAG, e.getMessage());
         }
+
+
 
 
     }
