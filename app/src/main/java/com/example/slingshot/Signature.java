@@ -52,9 +52,7 @@ public class Signature extends AppCompatActivity {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 String path = saveSignature(stream.toByteArray());
                 dv.clear();
-                SharedPreferences.Editor editor = pref.edit();
-                editor.putString("signature", path);
-                editor.commit();
+                new Uploader().sendImage(path,pref.getString("ip",null));
                 startActivity(new Intent(Signature.this,Shot.class));
             }
         });

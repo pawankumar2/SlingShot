@@ -30,17 +30,19 @@
             android:layout_margin="10sp"
             android:textSize="15dp"/>
     </LinearLayout>
-    <FrameLayout
+
+    <RelativeLayout
+        android:id="@+id/frameView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.slingshot.Camera"
-        android:id="@+id/frameView">
+        tools:context="com.example.slingshot.Camera">
 
         <SurfaceView
+            android:id="@+id/cameraView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/cameraView"
-            android:foreground="@drawable/frame1"/>
+            android:foreground="@drawable/overlay" />
+
         <TextView
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
@@ -49,7 +51,9 @@
             android:background="@color/transparent"
             android:text="Swipe to change frame"
             android:textColor="#000"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true" />
 
 
         <com.melnykov.fab.FloatingActionButton
@@ -57,7 +61,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
-            android:layout_marginBottom="10dp"/>
+            android:layout_alignBottom="@+id/changeCamera"
+            android:layout_centerHorizontal="true" />
 
-    </FrameLayout>
+        <ImageView
+            android:id="@+id/flash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:layout_gravity="center_vertical"
+            android:layout_margin="10dp"
+            app:srcCompat="@mipmap/ic_flash_off_white_36dp" />
+
+
+        <ImageView
+            android:id="@+id/changeCamera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="10dp"
+            app:srcCompat="@mipmap/ic_flip_to_front_white_36dp" />
+
+    </RelativeLayout>
 </LinearLayout>
