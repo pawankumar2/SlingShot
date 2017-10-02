@@ -44,8 +44,10 @@
             android:name=".Signature"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".Preview" />
-        <activity android:name=".Shot"
-            android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
+        <activity
+            android:name=".Shot"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity android:name=".Welcome"></activity>
     </application>
 
 </manifest>

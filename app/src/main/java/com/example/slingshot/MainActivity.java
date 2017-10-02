@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity{
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                startActivity(new Intent (MainActivity.this,CameraActivity.class));
+                startActivity(new Intent (MainActivity.this,Welcome.class));
                 finish();
             }
         }, 2000);
