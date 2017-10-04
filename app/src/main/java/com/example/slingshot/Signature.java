@@ -91,7 +91,7 @@ public class Signature extends AppCompatActivity {
         Log.i(MainActivity.TAG, String.valueOf(timeStamp));
         File mediaFile;
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                + "IMG_" + timeStamp + ".png");
+                + "sign" + timeStamp + ".png");
         Log.i(MainActivity.TAG,"Got file");
         Log.i(MainActivity.TAG,mediaFile.getParent() + " - " + mediaFile.getName() + " - " + mediaFile.getPath());
 

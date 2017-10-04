@@ -70,7 +70,7 @@ public class Preview extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 saveImage();
-                new Uploader().sendImage(path,pref.getString("ip",null));
+               // new Uploader().sendImage(path,pref.getString("ip",null));
                 if(name.isChecked() && !signature.isChecked())
                     dialog(0);
 
