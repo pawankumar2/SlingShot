@@ -39,10 +39,10 @@ public class MainActivity extends AppCompatActivity{
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                startActivity(new Intent (MainActivity.this,Welcome.class));
+                startActivity(new Intent (MainActivity.this,Data.class));
                 finish();
             }
-        }, 2000);
+        }, 5000);
 
 //        String clientId = MqttClient.generateClientId();
 //        final MqttAndroidClient client =

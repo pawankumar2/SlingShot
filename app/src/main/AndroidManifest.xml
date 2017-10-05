@@ -47,7 +47,8 @@
         <activity
             android:name=".Shot"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
-        <activity android:name=".Welcome"></activity>
+        <activity android:name=".Welcome" />
+        <activity android:name=".Data"></activity>
     </application>
 
 </manifest>
