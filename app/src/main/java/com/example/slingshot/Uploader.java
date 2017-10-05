@@ -25,7 +25,7 @@ import retrofit2.http.Part;
 public class Uploader {
     interface Service {
         @Multipart
-        @POST("/image.php")
+        @POST("/upload")
         Call<ResponseBody> postImage(@Part MultipartBody.Part image);
     }
     public void sendImage(String path, String ip){
@@ -34,7 +34,7 @@ public class Uploader {
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
 // Change base URL to your upload server URL.
-        Service service = new Retrofit.Builder().baseUrl("http://" + ip.trim() + ":80/").client(client).build().create(Service.class);
+        Service service = new Retrofit.Builder().baseUrl("http://" + ip.trim() + ":8085/").client(client).build().create(Service.class);
 
 
 
@@ -50,7 +50,7 @@ public class Uploader {
                 //Log.i(MainActivity.TAG,response.message());
                 try {
                     Log.i(MainActivity.TAG,response.body().string());
-                } catch (IOException e) {
+                } catch (IOException | NullPointerException  e) {
                     e.printStackTrace();
                 }
             }
