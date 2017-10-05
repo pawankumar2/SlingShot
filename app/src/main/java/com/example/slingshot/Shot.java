@@ -45,7 +45,11 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         setContentView(R.layout.activity_shot);
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
         String clientId = MqttClient.generateClientId();
+<<<<<<< HEAD
         client = new MqttAndroidClient(this.getApplicationContext(), "tcp://172.16.0.51:1883",
+=======
+        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://iot.eclipse.org:1883",
+>>>>>>> 3628d74b4719ffda2891d3991e99353b96a3b186
                 clientId);
         try {
             IMqttToken token = client.connect();
@@ -92,10 +96,18 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
 
                     float speed = Math.abs(x+y+z - last_x - last_y - last_z) / diffTime * 10000;
 
+<<<<<<< HEAD
                     //if (speed > SHAKE_THRESHOLD && mags != null && accels != null) {
                        // Log.d(MainActivity.TAG, "shake detected w/ speed: " + speed);
                        calcs();
                    // }
+=======
+                    if (speed > SHAKE_THRESHOLD ){//&& mags != null && accels != null) {
+                        Log.w(MainActivity.TAG,"shaked");
+
+                        calc();
+                    }
+>>>>>>> 3628d74b4719ffda2891d3991e99353b96a3b186
                     last_x = x;
                     last_y = y;
                     last_z = z;
@@ -103,6 +115,13 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
 
                 break;
         }
+<<<<<<< HEAD
+=======
+
+        if (mags != null && accels != null) {
+            //calc();
+       }
+>>>>>>> 3628d74b4719ffda2891d3991e99353b96a3b186
     }
 
 
@@ -132,7 +151,11 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         }
         return output;
     }
+<<<<<<< HEAD
     public void calcs(){
+=======
+    private void calc(){
+>>>>>>> 3628d74b4719ffda2891d3991e99353b96a3b186
         gravity = new float[9];
         magnetic = new float[9];
         SensorManager.getRotationMatrix(gravity, magnetic, accels, mags);
@@ -140,8 +163,13 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         SensorManager.remapCoordinateSystem(gravity, SensorManager.AXIS_X,SensorManager.AXIS_Z, outGravity);
         SensorManager.getOrientation(outGravity, values);
 
+<<<<<<< HEAD
         azimuth = ((float) ((values[0] *180)/Math.PI)+180);
         pitch = (float)((values[1]*180/Math.PI)+90);
+=======
+        azimuth = ((float) ((values[0] *180)/Math.PI) + 180);
+        pitch = (float)((values[1]*180/Math.PI) + 90);
+>>>>>>> 3628d74b4719ffda2891d3991e99353b96a3b186
         roll = (float)((values[2]*180/Math.PI));
         String payload = (int)  azimuth + "," + (int)pitch + "," + (int)roll;
         String topic = "Sling";
@@ -150,10 +178,20 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
             encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
             client.publish(topic, message);
+<<<<<<< HEAD
             // Log.i(MainActivity.TAG,"Message sent");
+=======
+            Log.i(MainActivity.TAG,"Message sent");
+>>>>>>> 3628d74b4719ffda2891d3991e99353b96a3b186
         } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
             Log.e(MainActivity.TAG,e.getMessage());
         }
 
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3628d74b4719ffda2891d3991e99353b96a3b186
 }
+
+

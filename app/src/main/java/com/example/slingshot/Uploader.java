@@ -40,6 +40,7 @@ public class Uploader {
 
 
 
+
         File file = new File(path);
 
         RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
@@ -52,7 +53,8 @@ public class Uploader {
                 //Log.i(MainActivity.TAG,response.message());
                 try {
                     Log.i(MainActivity.TAG,response.body().string());
-                } catch (IOException | NullPointerException e) {
+
+                }  catch (IOException | NullPointerException  e) {
                     e.printStackTrace();
                 }
             }
