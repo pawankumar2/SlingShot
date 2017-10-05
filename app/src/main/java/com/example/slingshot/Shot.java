@@ -36,7 +36,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float pitch;
     private float roll;
     static final float ALPHA = 0.25f;
-    private static final int SHAKE_THRESHOLD = 800;
+    private static final int SHAKE_THRESHOLD = 200;
     private long lastUpdate = System.currentTimeMillis();
 
     @Override
@@ -45,7 +45,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         setContentView(R.layout.activity_shot);
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
         String clientId = MqttClient.generateClientId();
-        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://172.16.0.11:1883",
+        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://172.16.0.51:1883",
                 clientId);
         try {
             IMqttToken token = client.connect();
@@ -67,7 +67,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                 }
             });
         } catch (MqttException | NullPointerException e) {
-            Log.e(MainActivity.TAG,e.getMessage());
+            Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
         }
     }
 
@@ -82,7 +82,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
 
                 long curTime = System.currentTimeMillis();
                 // only allow one update every 100ms.
-                if ((curTime - lastUpdate) > 100) {
+                //if ((curTime - lastUpdate) > 100) {
                     long diffTime = (curTime - lastUpdate);
                     lastUpdate = curTime;
 
@@ -92,51 +92,16 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
 
                     float speed = Math.abs(x+y+z - last_x - last_y - last_z) / diffTime * 10000;
 
-                    if (speed > SHAKE_THRESHOLD) {
-                        Log.d("sensor", "shake detected w/ speed: " + speed);
-                        String payloadq = ( "shake detected w/ speed: " + speed);
-                        String topicc = "Sling";
-                        byte[] encodedPayload1 = new byte[0];
-                        try {
-                            encodedPayload1 = payloadq.getBytes("UTF-8");
-                            MqttMessage message = new MqttMessage(encodedPayload1);
-                            client.publish(topicc, message);
-                            Log.i(MainActivity.TAG,"Message sent");
-                        } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
-                            Log.e(MainActivity.TAG,e.getMessage());
-                        }
-                    }
+                    //if (speed > SHAKE_THRESHOLD && mags != null && accels != null) {
+                       // Log.d(MainActivity.TAG, "shake detected w/ speed: " + speed);
+                       calcs();
+                   // }
                     last_x = x;
                     last_y = y;
                     last_z = z;
-                }
+                //}
 
                 break;
-        }
-
-        if (mags != null && accels != null) {
-            gravity = new float[9];
-            magnetic = new float[9];
-            SensorManager.getRotationMatrix(gravity, magnetic, accels, mags);
-            float[] outGravity = new float[9];
-            SensorManager.remapCoordinateSystem(gravity, SensorManager.AXIS_X,SensorManager.AXIS_Z, outGravity);
-            SensorManager.getOrientation(outGravity, values);
-
-            azimuth = ((float) ((values[0] *180)/Math.PI));
-            pitch = (float)((values[1]*180/Math.PI));
-            roll = (float)((values[2]*180/Math.PI));
-            String payload = "\nazimuth: " + (int)  azimuth + "\npitch: " + (int)pitch + "\nroll: " + (int)roll;
-            String topic = "Sling";
-            byte[] encodedPayload = new byte[0];
-            try {
-                encodedPayload = payload.getBytes("UTF-8");
-                MqttMessage message = new MqttMessage(encodedPayload);
-                client.publish(topic, message);
-                Log.i(MainActivity.TAG,"Message sent");
-            } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
-                Log.e(MainActivity.TAG,e.getMessage());
-            }
-
         }
     }
 
@@ -166,5 +131,29 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
             output[i] = output[i] + ALPHA * (input[i] - output[i]);
         }
         return output;
+    }
+    public void calcs(){
+        gravity = new float[9];
+        magnetic = new float[9];
+        SensorManager.getRotationMatrix(gravity, magnetic, accels, mags);
+        float[] outGravity = new float[9];
+        SensorManager.remapCoordinateSystem(gravity, SensorManager.AXIS_X,SensorManager.AXIS_Z, outGravity);
+        SensorManager.getOrientation(outGravity, values);
+
+        azimuth = ((float) ((values[0] *180)/Math.PI)+180);
+        pitch = (float)((values[1]*180/Math.PI)+90);
+        roll = (float)((values[2]*180/Math.PI));
+        String payload = (int)  azimuth + "," + (int)pitch + "," + (int)roll;
+        String topic = "Sling";
+        byte[] encodedPayload = new byte[0];
+        try {
+            encodedPayload = payload.getBytes("UTF-8");
+            MqttMessage message = new MqttMessage(encodedPayload);
+            client.publish(topic, message);
+            // Log.i(MainActivity.TAG,"Message sent");
+        } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
+            Log.e(MainActivity.TAG,e.getMessage());
+        }
+
     }
 }

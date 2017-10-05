@@ -124,7 +124,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                         Bitmap image = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
                         Bitmap rotatedBitmap = Bitmap.createBitmap(image , 0, 0, image.getWidth(), image.getHeight(), matrix, true);
                         ByteArrayOutputStream boas = new ByteArrayOutputStream();
-                        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG,100,boas);
+                        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG,1,boas);
                         String path = saveImage(boas.toByteArray());
                         Log.i(MainActivity.TAG,path);
 
