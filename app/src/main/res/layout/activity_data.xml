@@ -10,8 +10,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_centerVertical="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="11dp">
+        android:layout_alignParentStart="true">
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -24,6 +23,13 @@
             android:hint="Pledge"
             android:layout_margin="20dp"
             android:id="@+id/pledge"/>
+
+        <Button
+            android:id="@id/done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="Done" />
     </LinearLayout>
 
 </RelativeLayout>
