@@ -1,6 +1,7 @@
 package com.example.slingshot;
 
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -103,6 +104,8 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                         Log.w(MainActivity.TAG,"shaked");
 
                         calc(1);
+                        startActivity(new Intent(Shot.this,Welcome.class));
+                        finish();
                     }
                     last_x = x;
                     last_y = y;

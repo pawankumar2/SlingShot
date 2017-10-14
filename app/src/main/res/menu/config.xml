@@ -3,4 +3,7 @@
     <item
         android:title="Calibrate"
         android:id="@+id/calibrate"/>
+    <item
+        android:title="Clear Screen"
+        android:id="@+id/clear"/>
 </menu>
