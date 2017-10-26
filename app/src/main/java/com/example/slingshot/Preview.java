@@ -69,8 +69,14 @@ public class Preview extends AppCompatActivity {
         moveForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+               String ip = pref.getString("uip",null);
+                if(ip == null){
+                    Toast.makeText(getApplicationContext(),"Enter mqtt ip",Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(Preview.this,Welcome.class));
+                    finish();
+                }
                 saveImage();
-                new Uploader().sendImage(path,pref.getString("ip",null));
+                new Uploader().sendImage(path,ip);
                 if(name.isChecked() && !signature.isChecked())
                     dialog(0);
 
@@ -198,21 +204,7 @@ public class Preview extends AppCompatActivity {
     }
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflaterMenu = getMenuInflater();
-        inflaterMenu.inflate(R.menu.settings, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.ip){
-            dialog(2);
-            return true;
-        }
-        return false;
-    }
     private boolean delImage(String path){
         File file = new File(path);
         if(file.exists())

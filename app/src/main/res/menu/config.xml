@@ -6,4 +6,11 @@
     <item
         android:title="Clear Screen"
         android:id="@+id/clear"/>
+    <item
+        android:title="Set mqtt IP"
+        android:id="@+id/mip"/>
+    <item
+        android:title="Set upload IP"
+        android:id="@+id/uip"/>
+
 </menu>

@@ -1,10 +1,18 @@
 package com.example.slingshot;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -12,6 +20,7 @@ public class Data extends AppCompatActivity {
 
     EditText nameText;
     EditText pledgeText;
+    private SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,7 +28,7 @@ public class Data extends AppCompatActivity {
         setContentView(R.layout.activity_data);
         nameText = (EditText) findViewById(R.id.name);
         pledgeText = (EditText) findViewById(R.id.pledge);
-        final SharedPreferences sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
+         sp = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
         final SharedPreferences.Editor editor = sp.edit();
         final Button done = (Button) findViewById(R.id.done);
         done.setOnClickListener(new View.OnClickListener() {
@@ -27,16 +36,16 @@ public class Data extends AppCompatActivity {
             public void onClick(View view) {
                 String name = nameText.getText().toString();
                 String pledge = pledgeText.getText().toString();
-                if(name.isEmpty())
+                if (name.isEmpty())
                     nameText.setError("cannot be empty");
-                else if(pledge.isEmpty())
+                else if (pledge.isEmpty())
                     pledgeText.setError("cannot be empty");
-                else{
+                else {
                     SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("name",name);
-                    editor.putString("pledge",pledge);
+                    editor.putString("name", name);
+                    editor.putString("pledge", pledge);
                     editor.commit();
-                    startActivity(new Intent(Data.this,Shot.class));
+                    startActivity(new Intent(Data.this, Shot.class));
                 }
             }
         });

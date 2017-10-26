@@ -1,6 +1,8 @@
 package com.example.slingshot;
 
+import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +36,7 @@ public class Uploader {
         OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
 // Change base URL to your upload server URL.
-        Service service = new Retrofit.Builder().baseUrl("http://172.16.0.51:8085").client(client).build().create(Service.class);
+        Service service = new Retrofit.Builder().baseUrl("http://172.16.0.23:8085").client(client).build().create(Service.class);
         Log.i(MainActivity.TAG,"from uploader: " + ip);
         Log.i(MainActivity.TAG, "connecting to : " + "http://" + ip.trim() + ":8085");
 

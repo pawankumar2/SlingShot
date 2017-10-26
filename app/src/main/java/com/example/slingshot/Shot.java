@@ -10,6 +10,7 @@ import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -50,32 +51,40 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         SharedPreferences sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
         name = sp.getString("name","Unknown");
         pledge = sp.getString("pledge","Unknown");
-        mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
-        String clientId = MqttClient.generateClientId();
-        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://172.16.0.51:1883",
-                clientId);
-        try {
-            IMqttToken token = client.connect();
-            token.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    // We are connected
-                    Log.d(MainActivity.TAG, "onSuccess");
+        String ip = sp.getString("mip",null);
+        if(ip == null){
+            Toast.makeText(getApplicationContext(),"set mqtt ip in the menu",Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Shot.this,Welcome.class));
+            finish();
+        }else{
+            String clientId = MqttClient.generateClientId();
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+ ip +":1883",
+                    clientId);
+            try {
+                IMqttToken token = client.connect();
+                token.setActionCallback(new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        // We are connected
+                        Log.d(MainActivity.TAG, "onSuccess");
 
-                }
+                    }
 
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    // Something went wrong e.g. connection timeout or firewall problems
-                    Log.e(MainActivity.TAG, "onFailure");
-                    Log.e(MainActivity.TAG, exception.getMessage());
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        // Something went wrong e.g. connection timeout or firewall problems
+                        Log.e(MainActivity.TAG, "onFailure");
+                        Log.e(MainActivity.TAG, exception.getMessage());
 
 
-                }
-            });
-        } catch (MqttException | NullPointerException e) {
-            Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
+                    }
+                });
+            } catch (MqttException | NullPointerException e) {
+                Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
+            }
+
         }
+        mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
     }
 
     @Override
