@@ -34,12 +34,12 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float[] values = new float[3];
 
     // azimuth, pitch and roll
-    private float x,y,z,last_x,last_y,last_z;
+    private float x,y,z,last_x=0,last_y=0,last_z=0;
     private float azimuth;
     private float pitch;
     private float roll;
     static final float ALPHA = 0.25f;
-    private static final int SHAKE_THRESHOLD = 200;
+    private static final int SHAKE_THRESHOLD = 300;
     private long lastUpdate = System.currentTimeMillis();
     private String name;
     private String pledge;
@@ -105,15 +105,19 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                     x = accels[0];
                     y = accels[1];
                     z = accels[2];
+                Log.i(MainActivity.TAG,"difftime= " + diffTime);
 
                     float speed = Math.abs(x+y+z - last_x - last_y - last_z) / diffTime * 10000;
-
+                Log.i(MainActivity.TAG,"speed= " + speed);
 
                     if (speed > SHAKE_THRESHOLD && mags != null && accels != null) {
                         Log.w(MainActivity.TAG,"shaked");
 
                         calc(1);
                         startActivity(new Intent(Shot.this,Welcome.class));
+                        last_x = 0;
+                        last_y = 0;
+                        last_z = 0;
                         finish();
                     }
                     last_x = x;
