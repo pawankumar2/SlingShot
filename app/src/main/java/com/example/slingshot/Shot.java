@@ -27,6 +27,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private MqttAndroidClient client;
     private SensorManager mSensorManager;
     private float gravity[];
+    private int fallbackk =0;
     // Magnetic rotational data
     private float magnetic[]; //for magnetic rotational data
     private float accels[] = new float[3];
@@ -39,10 +40,12 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float pitch;
     private float roll;
     static final float ALPHA = 0.25f;
-    private static final int SHAKE_THRESHOLD = 300;
+    private static final int SHAKE_THRESHOLD = 84;
     private long lastUpdate = System.currentTimeMillis();
     private String name;
     private String pledge;
+    private String topic;
+    int i = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,14 +54,16 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         SharedPreferences sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
         name = sp.getString("name","Unknown");
         pledge = sp.getString("pledge","Unknown");
+        topic = sp.getString("topic",null);
         String ip = sp.getString("mip",null);
-        if(ip == null){
-            Toast.makeText(getApplicationContext(),"set mqtt ip in the menu",Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Shot.this,Welcome.class));
-            finish();
-        }else{
+        Log.i(MainActivity.TAG,"name: " + name + "\npledge: " + pledge);
+        //if(ip == null){
+//            Toast.makeText(getApplicationContext(),"set mqtt ip in the menu",Toast.LENGTH_LONG).show();
+//            startActivity(new Intent(Shot.this,Welcome.class));
+//            finish();
+        //}else{
             String clientId = MqttClient.generateClientId();
-            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+ ip +":1883",
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://192.168.0.104:1883",
                     clientId);
             try {
                 IMqttToken token = client.connect();
@@ -67,12 +72,14 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                     public void onSuccess(IMqttToken asyncActionToken) {
                         // We are connected
                         Log.d(MainActivity.TAG, "onSuccess");
+                        Toast.makeText(getApplicationContext(),"success",Toast.LENGTH_LONG).show();
 
                     }
 
                     @Override
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                         // Something went wrong e.g. connection timeout or firewall problems
+                        Toast.makeText(getApplicationContext(),"failed",Toast.LENGTH_LONG).show();
                         Log.e(MainActivity.TAG, "onFailure");
                         Log.e(MainActivity.TAG, exception.getMessage());
 
@@ -83,12 +90,13 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                 Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
             }
 
-        }
+        //}
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        fallbackk++;
         switch (event.sensor.getType()) {
             case Sensor.TYPE_MAGNETIC_FIELD:
                 mags = lowPass(event.values.clone(),mags);
@@ -105,12 +113,12 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                     x = accels[0];
                     y = accels[1];
                     z = accels[2];
-                Log.i(MainActivity.TAG,"difftime= " + diffTime);
+              //  Log.i(MainActivity.TAG,"difftime= " + diffTime);
 
                     float speed = Math.abs(x+y+z - last_x - last_y - last_z) / diffTime * 10000;
                 Log.i(MainActivity.TAG,"speed= " + speed);
 
-                    if (speed > SHAKE_THRESHOLD && mags != null && accels != null) {
+                    if (speed > SHAKE_THRESHOLD && mags != null && accels != null && fallbackk >50) {
                         Log.w(MainActivity.TAG,"shaked");
 
                         calc(1);
@@ -129,7 +137,13 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         }
 
         if (mags != null && accels != null) {
-            calc(0);
+            if(i > 3 ){
+                calc(0);
+                i =0;
+            }
+            i++;
+            Log.i(MainActivity.TAG," "+ i);
+
        }
     }
 
@@ -172,16 +186,22 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         String payload = "don't know";
         if(n == 0)
              payload = "moving^"+ (int)  azimuth + "^" + (int)pitch;
-        else if (n == 1)
+        else if (n == 1){
             payload = "moving^"+ (int)  azimuth + "^" + (int)pitch + "^" + name + "^"+ pledge;
-        String topic = "Sling";
+            Log.i(MainActivity.TAG,payload);
+        }
         byte[] encodedPayload = new byte[0];
         try {
             encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
-            client.publish(topic, message);
+            if(topic!=null)
+                client.publish(topic, message);
+            else
+                Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
+           // Log.i(MainActivity.TAG,"Failed to publish");
         } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
             Log.e(MainActivity.TAG,e.getMessage());
+           // Log.i(MainActivity.TAG,"Failed to publish");
         }
 
     }

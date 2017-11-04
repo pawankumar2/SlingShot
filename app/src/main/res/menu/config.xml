@@ -12,5 +12,8 @@
     <item
         android:title="Set upload IP"
         android:id="@+id/uip"/>
+    <item
+        android:title="Topic"
+        android:id="@+id/topic"/>
 
 </menu>
