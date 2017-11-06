@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.nfc.Tag;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -82,12 +83,13 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         }
         else if(item.getItemId() == R.id.clear){
             String payload = "remove^";
-            String topic = "Sling";
+            String topic = sp.getString("topic",null);
+            Log.i(MainActivity.TAG,topic);
             byte[] encodedPayload = new byte[0];
             try {
                 encodedPayload = payload.getBytes("UTF-8");
                 MqttMessage message = new MqttMessage(encodedPayload);
-                client.publish(topic, message);
+                client.publish("Sling", message);
             } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
                 Log.e(MainActivity.TAG,e.getMessage());
             }
@@ -101,14 +103,15 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
        final View layout = inflater.inflate(R.layout.namedialog,
                 (ViewGroup) findViewById(R.id.nameLayout));
-        AlertDialog.Builder nameBuilder = new AlertDialog.Builder(this);
+        final AlertDialog.Builder nameBuilder = new AlertDialog.Builder(this);
         nameBuilder.setView(layout);
+
         nameBuilder.setTitle("Enter Topic");
         nameBuilder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 Log.i(MainActivity.TAG,"OKAY Pressed");
-                EditText name =  layout.findViewById(R.id.name);
+                EditText name =  layout.findViewById(R.id.nameDialog);
                 String fullName = name.getText().toString();
                 if(fullName.length() != 0){
                     Log.i(MainActivity.TAG,"\nname = " + fullName);
@@ -120,12 +123,12 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 
             }
         });
-        AlertDialog nameDialog = null;
-        final AlertDialog finalNameDialog = nameDialog;
+
+        AlertDialog nameDialog;
         nameBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                finalNameDialog.dismiss();
+
 
             }
         });
@@ -151,6 +154,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     }
     public void calc(){
         String topic = sp.getString("topic",null);
+        Log.i(MainActivity.TAG,topic);
         gravity = new float[9];
         magnetic = new float[9];
         SensorManager.getRotationMatrix(gravity, magnetic, accels, mags);
@@ -163,10 +167,10 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         try {
             encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
-            if(topic!=null)
-                client.publish(topic, message);
-            else
-                Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
+            //if(topic!=null)
+                client.publish("Sling", message);
+            //else
+              //  Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
         } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
             Log.e(MainActivity.TAG,e.getMessage());
         }
@@ -189,7 +193,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     protected void onResume() {
         super.onResume();
         String clientId = MqttClient.generateClientId();
-        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://192.168.0.104:1883",
+        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://192.168.0.113:1883",
                 clientId);
         try {
             IMqttToken token = client.connect();

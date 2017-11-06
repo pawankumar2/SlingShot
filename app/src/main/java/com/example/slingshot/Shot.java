@@ -63,7 +63,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
 //            finish();
         //}else{
             String clientId = MqttClient.generateClientId();
-            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://192.168.0.104:1883",
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://192.168.0.113:1883",
                     clientId);
             try {
                 IMqttToken token = client.connect();
@@ -116,11 +116,13 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
               //  Log.i(MainActivity.TAG,"difftime= " + diffTime);
 
                     float speed = Math.abs(x+y+z - last_x - last_y - last_z) / diffTime * 10000;
-                Log.i(MainActivity.TAG,"speed= " + speed);
 
-                    if (speed > SHAKE_THRESHOLD && mags != null && accels != null && fallbackk >50) {
+
+                    if (speed > SHAKE_THRESHOLD && speed < 5000 && mags != null && accels != null && fallbackk >50 ) {
+                        mSensorManager.unregisterListener(this);
+                        Log.i(MainActivity.TAG,""+fallbackk);
                         Log.w(MainActivity.TAG,"shaked");
-
+                        Log.i(MainActivity.TAG,"speed= " + speed);
                         calc(1);
                         startActivity(new Intent(Shot.this,Welcome.class));
                         last_x = 0;
@@ -142,7 +144,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                 i =0;
             }
             i++;
-            Log.i(MainActivity.TAG," "+ i);
+           // Log.i(MainActivity.TAG," "+ i);
 
        }
     }
@@ -194,10 +196,10 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         try {
             encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
-            if(topic!=null)
-                client.publish(topic, message);
-            else
-                Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
+            //if(topic!=null)
+                client.publish("Sling", message);
+            //else
+              //  Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
            // Log.i(MainActivity.TAG,"Failed to publish");
         } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
             Log.e(MainActivity.TAG,e.getMessage());
