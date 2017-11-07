@@ -63,7 +63,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
 //            finish();
         //}else{
             String clientId = MqttClient.generateClientId();
-            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://192.168.0.113:1883",
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://iot.eclipse.org:1883",
                     clientId);
             try {
                 IMqttToken token = client.connect();

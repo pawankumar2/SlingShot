@@ -193,7 +193,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     protected void onResume() {
         super.onResume();
         String clientId = MqttClient.generateClientId();
-        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://192.168.0.113:1883",
+        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://iot.eclipse.org:1883",
                 clientId);
         try {
             IMqttToken token = client.connect();
