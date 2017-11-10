@@ -82,41 +82,62 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
              builder.create().show();
         }
         else if(item.getItemId() == R.id.clear){
-            String payload = "remove^";
+
             String topic = sp.getString("topic",null);
-            Log.i(MainActivity.TAG,topic);
+            String payload = topic + "^remove^";
+//            Log.i(MainActivity.TAG,topic);
             byte[] encodedPayload = new byte[0];
             try {
                 encodedPayload = payload.getBytes("UTF-8");
                 MqttMessage message = new MqttMessage(encodedPayload);
-                client.publish("Sling", message);
+                if(topic!=null)
+                    client.publish("Sling", message);
+                else
+                    Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
+
             } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
                 Log.e(MainActivity.TAG,e.getMessage());
             }
         }
         else if(item.getItemId() == R.id.topic){
-            getTopic();
+            set(0);
+        }
+        else if(item.getItemId() == R.id.mip){
+            set(1);
+
         }
         return true;
     }
-    public void getTopic(){
+    public void set(final int n){
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
        final View layout = inflater.inflate(R.layout.namedialog,
                 (ViewGroup) findViewById(R.id.nameLayout));
-        final AlertDialog.Builder nameBuilder = new AlertDialog.Builder(this);
-        nameBuilder.setView(layout);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final EditText text =  layout.findViewById(R.id.nameDialog);
+        builder.setView(layout);
 
-        nameBuilder.setTitle("Enter Topic");
-        nameBuilder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
+        if(n ==0) {
+            builder.setTitle("Enter Topic");
+            text.setHint(sp.getString("topic","topic"));
+        }
+        else if(n==1) {
+            builder.setTitle("Enter Mqttip");
+            text.setHint(sp.getString("mip","ip"));
+        }
+        builder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 Log.i(MainActivity.TAG,"OKAY Pressed");
-                EditText name =  layout.findViewById(R.id.nameDialog);
-                String fullName = name.getText().toString();
-                if(fullName.length() != 0){
-                    Log.i(MainActivity.TAG,"\nname = " + fullName);
+
+                String converted = text.getText().toString();
+                if(converted.length() != 0){
+                    Log.i(MainActivity.TAG,"\nname = " + text);
                     SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("topic",fullName);
+                    if(n==0)
+                        editor.putString("topic",converted);
+                    else if(n==1)
+                        editor.putString("mip", converted);
+
                     editor.commit();
 
                 }
@@ -125,14 +146,14 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         });
 
         AlertDialog nameDialog;
-        nameBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
 
 
             }
         });
-        nameDialog = nameBuilder.create();
+        nameDialog = builder.create();
         nameDialog.show();
     }
 
@@ -154,7 +175,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     }
     public void calc(){
         String topic = sp.getString("topic",null);
-        Log.i(MainActivity.TAG,topic);
+       // Log.i(MainActivity.TAG,topic);
         gravity = new float[9];
         magnetic = new float[9];
         SensorManager.getRotationMatrix(gravity, magnetic, accels, mags);
@@ -162,15 +183,15 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         SensorManager.remapCoordinateSystem(gravity, SensorManager.AXIS_X,SensorManager.AXIS_Z, outGravity);
         SensorManager.getOrientation(outGravity, values);
         azimuth = ((float) ((values[0] *180)/Math.PI)+180);
-        String payload = "calibrate^"+ (int)  azimuth;
+        String payload = topic + "^calibrate^"+ (int)  azimuth;
         byte[] encodedPayload = new byte[0];
         try {
             encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
-            //if(topic!=null)
+            if(topic!=null)
                 client.publish("Sling", message);
-            //else
-              //  Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
+            else
+                Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
         } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
             Log.e(MainActivity.TAG,e.getMessage());
         }
@@ -192,31 +213,36 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     @Override
     protected void onResume() {
         super.onResume();
-        String clientId = MqttClient.generateClientId();
-        client = new MqttAndroidClient(this.getApplicationContext(), "tcp://iot.eclipse.org:1883",
-                clientId);
-        try {
-            IMqttToken token = client.connect();
-            token.setActionCallback(new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    // We are connected
-                    Log.d(MainActivity.TAG, "onSuccess");
+        String mip = sp.getString("mip",null);
+        if(mip != null){
+            String clientId = MqttClient.generateClientId();
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+mip+":1883",
+                    clientId);
+            try {
+                IMqttToken token = client.connect();
+                token.setActionCallback(new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        // We are connected
+                        Log.d(MainActivity.TAG, "onSuccess");
 
-                }
+                    }
 
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    // Something went wrong e.g. connection timeout or firewall problems
-                    Log.e(MainActivity.TAG, "onFailure");
-                    Log.e(MainActivity.TAG, exception.getMessage());
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        // Something went wrong e.g. connection timeout or firewall problems
+                        Log.e(MainActivity.TAG, "onFailure");
+                        Log.e(MainActivity.TAG, exception.getMessage());
 
 
-                }
-            });
-        } catch (MqttException | NullPointerException e) {
-            Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
+                    }
+                });
+            } catch (MqttException | NullPointerException e) {
+                Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
+            }
         }
+        else
+            Toast.makeText(getApplicationContext(),"set mqtt ip",Toast.LENGTH_LONG).show();
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
     }

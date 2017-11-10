@@ -38,7 +38,6 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float x,y,z,last_x=0,last_y=0,last_z=0;
     private float azimuth;
     private float pitch;
-    private float roll;
     static final float ALPHA = 0.25f;
     private static final int SHAKE_THRESHOLD = 84;
     private long lastUpdate = System.currentTimeMillis();
@@ -57,13 +56,13 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         topic = sp.getString("topic",null);
         String ip = sp.getString("mip",null);
         Log.i(MainActivity.TAG,"name: " + name + "\npledge: " + pledge);
-        //if(ip == null){
-//            Toast.makeText(getApplicationContext(),"set mqtt ip in the menu",Toast.LENGTH_LONG).show();
-//            startActivity(new Intent(Shot.this,Welcome.class));
-//            finish();
-        //}else{
+        if(ip == null){
+            Toast.makeText(getApplicationContext(),"set mqtt ip in the menu",Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Shot.this,Welcome.class));
+            finish();
+        }else{
             String clientId = MqttClient.generateClientId();
-            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://iot.eclipse.org:1883",
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+ip+":1883",
                     clientId);
             try {
                 IMqttToken token = client.connect();
@@ -90,7 +89,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                 Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
             }
 
-        //}
+        }
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
     }
 
@@ -187,19 +186,19 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         pitch = (float)((values[1]*180/Math.PI)+90);
         String payload = "don't know";
         if(n == 0)
-             payload = "moving^"+ (int)  azimuth + "^" + (int)pitch;
+             payload = topic + "^moving^"+ (int)  azimuth + "^" + (int)pitch;
         else if (n == 1){
-            payload = "moving^"+ (int)  azimuth + "^" + (int)pitch + "^" + name + "^"+ pledge;
+            payload = topic + "^moving^"+ (int)  azimuth + "^" + (int)pitch + "^" + name + "^"+ pledge;
             Log.i(MainActivity.TAG,payload);
         }
         byte[] encodedPayload = new byte[0];
         try {
             encodedPayload = payload.getBytes("UTF-8");
             MqttMessage message = new MqttMessage(encodedPayload);
-            //if(topic!=null)
+            if(topic!=null)
                 client.publish("Sling", message);
-            //else
-              //  Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
+            else
+                Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
            // Log.i(MainActivity.TAG,"Failed to publish");
         } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
             Log.e(MainActivity.TAG,e.getMessage());
