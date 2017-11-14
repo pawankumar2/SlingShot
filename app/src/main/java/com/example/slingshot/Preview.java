@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.media.MediaScannerConnection;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.support.v7.app.AlertDialog;
@@ -38,8 +39,6 @@ public class Preview extends AppCompatActivity {
 
     private String path;
     private ImageView preview;
-    private CheckBox signature;
-    private CheckBox name;
     private Button moveForward;
     private LayoutInflater inflater;
     private View layout;
@@ -52,6 +51,7 @@ public class Preview extends AppCompatActivity {
     private int [] land = {R.drawable.overlay0,R.drawable.photoframe0};
     private  Bitmap combinedImage;
     private int applyFrame;
+    private  File dirWaiting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,37 +61,33 @@ public class Preview extends AppCompatActivity {
         orientation = getIntent().getIntExtra("orientation",0);
         applyFrame = getIntent().getIntExtra("frame",0);
         preview = (ImageView) findViewById(R.id.preview);
-        signature = (CheckBox) findViewById(R.id.signatureCheckBox);
-        name = (CheckBox) findViewById(R.id.nameCheckBox);
+        final CheckBox fb = (CheckBox) findViewById(R.id.share);
         moveForward = (Button) findViewById(R.id.moveForward);
         retake = (Button) findViewById(R.id.retake);
         pref = getApplicationContext().getSharedPreferences("data", Context.MODE_PRIVATE);
+        dirWaiting = new File( Environment
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picShot/Waiting/");
+        dirWaiting.mkdir();
         moveForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                String ip = pref.getString("uip",null);
                 if(ip == null){
-                    Toast.makeText(getApplicationContext(),"Enter mqtt ip",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"Enter upload ip",Toast.LENGTH_LONG).show();
                     startActivity(new Intent(Preview.this,Welcome.class));
                     finish();
                 }
-                saveImage();
+                int i = 0;
+                dialog();
+                if(fb.isChecked())
+                    i = 1;
+                saveImage(i);
                 new Uploader().sendImage(path,ip);
-                if(name.isChecked() && !signature.isChecked())
-                    dialog(0);
 
-                else if(signature.isChecked() && !name.isChecked()){
-                    save(null);
-                    startActivity(new Intent(Preview.this,Signature.class));
-                }
 
-                else if(name.isChecked() && signature.isChecked())
-                    dialog(1);
 
-                else {
-                    save(null);
-                    startActivity(new Intent(Preview.this, Shot.class));
-                }
+
+
             }
         });
         retake.setOnClickListener(new View.OnClickListener() {
@@ -107,7 +103,7 @@ public class Preview extends AppCompatActivity {
 
 
 
-    private void dialog(final int j) {
+    private void dialog() {
         inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         layout = inflater.inflate(R.layout.namedialog,
                 (ViewGroup) findViewById(R.id.nameLayout));
@@ -118,24 +114,15 @@ public class Preview extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 Log.i(MainActivity.TAG,"OKAY Pressed");
-                EditText name =  layout.findViewById(R.id.name);
+                EditText name =  layout.findViewById(R.id.nameDialog);
                 String fullName = name.getText().toString();
                 if(fullName.length() != 0){
                     Log.i(MainActivity.TAG,"\nname = " + fullName);
                     SharedPreferences.Editor editor = pref.edit();
-                    if(j == 0){
-                        save(fullName);
+                    editor.putString("name",fullName);
+                    editor.putString("image",path);
+                    editor.commit();
                         startActivity(new Intent(Preview.this,Shot.class));
-                    }
-
-                    else if (j == 1){
-                        save(fullName);
-                        startActivity(new Intent(Preview.this,Signature.class));
-                    }
-                    else if (j == 2){
-                        editor.putString("ip",fullName);
-                        editor.commit();
-                    }
 
                 }
 
@@ -152,12 +139,6 @@ public class Preview extends AppCompatActivity {
 
     }
 
-    private void save(String name){
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("name",name);
-        editor.putString("image",path);
-        editor.commit();
-    }
 
     private void addImage() {
         Log.i(MainActivity.TAG, "This is where the image came from -> " + path);
@@ -173,7 +154,7 @@ public class Preview extends AppCompatActivity {
                 frame = BitmapFactory.decodeResource(getResources(), portrait[applyFrame]);
             else
                 frame = BitmapFactory.decodeResource(getResources(), land[applyFrame]);
-            combinedImage = combineImages(frame, myBitmap);
+            combinedImage = myBitmap;//combineImages(frame, myBitmap);
             preview.setImageBitmap(combinedImage);
             Log.i(MainActivity.TAG, "Bitmap added");
 
@@ -181,27 +162,66 @@ public class Preview extends AppCompatActivity {
     }
 
 
-    private String saveImage(){
-        ByteArrayOutputStream boas = new ByteArrayOutputStream();
-        combinedImage.compress(Bitmap.CompressFormat.JPEG,100,boas);
-        byte[] byteArray = boas.toByteArray();
-        File pictureFile = new File(path);
-        try {
-            FileOutputStream fos = new FileOutputStream(pictureFile);
-            fos.write(byteArray);
-            Log.i(MainActivity.TAG,"file saved");
-            fos.close();
-            Log.i(MainActivity.TAG,"stream closed");
-        } catch (FileNotFoundException e) {
-            Log.e(MainActivity.TAG,e.getMessage());
+    private void saveImage(final int i ){
 
-        } catch (IOException e) {
-            Log.e(MainActivity.TAG,e.getMessage());
-        }
-        MediaScannerConnection.scanFile(this, new String[] { pictureFile.getPath() }, new String[] { "image/jpeg" }, null);
-        return pictureFile.getPath();
+        final Bitmap image = combinedImage;
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
+                final File[] pictureFile = new File[1];
+
+
+                pictureFile[0] = getOutputMediaFile(i);
+
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                byte[] byteArray = stream.toByteArray();
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(pictureFile[0]);
+                    fos.write(byteArray);
+                    Log.i(Welcome.TAG,"file saved");
+                    fos.close();
+                    Log.i(Welcome.TAG,"stream closed");
+                } catch (FileNotFoundException e) {
+                    Log.e(Welcome.TAG,e.getMessage());
+
+                } catch (IOException e) {
+                    Log.e(Welcome.TAG,e.getMessage());
+                }
+                delImage(path);
+                MediaScannerConnection.scanFile(getApplicationContext(), new String[] { path }, new String[] { "image/jpeg" }, null);
+                MediaScannerConnection.scanFile(getApplicationContext(), new String[] { pictureFile[0].getPath() }, new String[] { "image/jpeg" }, null);
+
+                return null;
+            }
+
+
+        }.execute();
+
 
     }
+
+
+
+    private  File getOutputMediaFile(int i) {
+
+        Long timeStamp = System.currentTimeMillis();
+        Log.i(Welcome.TAG, String.valueOf(timeStamp));
+        String uid = pref.getString("band_uid","null");
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("uid",null);
+        editor.commit();
+        Log.i(Welcome.TAG,uid);
+        File mediaFile;
+        mediaFile = new File(dirWaiting.getPath() + File.separator + uid
+                + "__"+ i + "__" + 0+ "__"+ timeStamp + ".jpeg");
+        Log.i(Welcome.TAG,"Got file");
+        Log.i(Welcome.TAG,mediaFile.getParent() + " - " + mediaFile.getName() + " - " + mediaFile.getPath());
+
+        return mediaFile;
+    }
+
 
 
 

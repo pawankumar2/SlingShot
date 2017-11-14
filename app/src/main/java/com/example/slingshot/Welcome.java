@@ -22,12 +22,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -44,19 +54,21 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     private float mags[] = new float[3];
     private float[] values = new float[3];
     private SharedPreferences sp;
-
+    public static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+        new Permissions(getApplicationContext(),Welcome.this).takePhoto();
         Button start = (Button) findViewById(R.id.start);
         sp = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(Welcome.this, Data.class));
+                set(2);
             }
         });
     }
@@ -83,30 +95,55 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         }
         else if(item.getItemId() == R.id.clear){
 
-            String topic = sp.getString("topic",null);
-            String payload = topic + "^remove^";
-//            Log.i(MainActivity.TAG,topic);
-            byte[] encodedPayload = new byte[0];
-            try {
-                encodedPayload = payload.getBytes("UTF-8");
-                MqttMessage message = new MqttMessage(encodedPayload);
-                if(topic!=null)
-                    client.publish("Sling", message);
-                else
-                    Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
-
-            } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
-                Log.e(MainActivity.TAG,e.getMessage());
-            }
+            send(0);
         }
         else if(item.getItemId() == R.id.topic){
-            set(0);
+            set(3);
         }
         else if(item.getItemId() == R.id.mip){
             set(1);
 
         }
+        else if (item.getItemId() == R.id.uip)
+            set(0);
+//        else if(item.getItemId() == R.id.shut){
+//            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            builder.setMessage("Are you sure you want to shutdown the system?")
+//                    .setPositiveButton("Yes", new DialogInterface.OnClickListener(){
+//                        @Override
+//                        public void onClick(DialogInterface dialogInterface, int i) {
+//                            send(1);
+//                        }
+//
+//                    }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialogInterface, int i) {
+//
+//                }
+//            });
+//            builder.create().show();
+//        }
         return true;
+    }
+    public void send (int i){
+        String topic = sp.getString("topic",null);
+        String payload = null;
+        if(i == 0)
+            payload = topic + "^remove^";
+        else if (i == 1 )
+            payload = topic + "^shutdown^";
+        byte[] encodedPayload = new byte[0];
+        try {
+            encodedPayload = payload.getBytes("UTF-8");
+            MqttMessage message = new MqttMessage(encodedPayload);
+            if(topic!=null)
+                client.publish("Sling", message);
+            else
+                Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
+
+        } catch (UnsupportedEncodingException | MqttException | NullPointerException e) {
+            Log.e(MainActivity.TAG,e.getMessage());
+        }
     }
     public void set(final int n){
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -117,12 +154,20 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         builder.setView(layout);
 
         if(n ==0) {
-            builder.setTitle("Enter Topic");
-            text.setHint(sp.getString("topic","topic"));
+            builder.setTitle("Enter Uploadip");
+            text.setHint(sp.getString("uip","UploadIP"));
         }
         else if(n==1) {
             builder.setTitle("Enter Mqttip");
             text.setHint(sp.getString("mip","ip"));
+        }
+        else if(n == 2){
+            builder.setTitle("Enter your TagID");
+            text.setHint("TagID");
+        }
+        else if(n == 3){
+            builder.setTitle("Enter Topic");
+            text.setHint(sp.getString("topic","topic"));
         }
         builder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
             @Override
@@ -134,10 +179,17 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                     Log.i(MainActivity.TAG,"\nname = " + text);
                     SharedPreferences.Editor editor = sp.edit();
                     if(n==0)
-                        editor.putString("topic",converted);
+                        editor.putString("uip",converted);
                     else if(n==1)
                         editor.putString("mip", converted);
-
+                    else if (n==2) {
+                        //editor.putString("tag", converted);
+                        getUid(converted.replace(" ", ""));
+                        startActivity(new Intent(Welcome.this, CameraActivity.class));
+                    }
+                    else if(n==3){
+                        editor.putString("topic",converted.replace(" ",""));
+                    }
                     editor.commit();
 
                 }
@@ -208,6 +260,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     @Override
     protected void onPause() {
         mSensorManager.unregisterListener(this);
+        disconnect();
         super.onPause();
     }
     @Override
@@ -245,5 +298,65 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
             Toast.makeText(getApplicationContext(),"set mqtt ip",Toast.LENGTH_LONG).show();
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+    new Uploader2(getApplicationContext());
+    }
+    public void disconnect(){
+        try {
+            IMqttToken disconToken = client.disconnect();
+            disconToken.setActionCallback(new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                    // we are now successfully disconnected
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken,
+                                      Throwable exception) {
+                    // something went wrong, but probably we are disconnected anyway
+                }
+            });
+        } catch (MqttException  | NullPointerException e) {
+            Log.e(MainActivity.TAG,e.getMessage());
+        }
+    }
+
+    private void getUid(final String tagid) {
+
+        final String url = "http://socialact.in/api/social-users/uhf-testing" ;
+        RequestQueue queue = Volley.newRequestQueue(this);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                JSONArray arrayResponse = null;
+                try {
+                    arrayResponse = response.getJSONArray("data");
+                    for(int i = 0; i<arrayResponse.length();i++){
+                        try {
+                            JSONObject user = arrayResponse.getJSONObject(i);
+
+                            if(tagid.equals(user.getString("band_number"))){
+                                SharedPreferences.Editor editor = sp.edit();
+                                Log.i(MainActivity.TAG,"uid = " + user.getString("band_uid"));
+                                editor.putString("band_uid",user.getString("band_uid"));
+                                editor.commit();
+                            }
+                        } catch (JSONException e) {
+                            Log.e(MainActivity.TAG,e.getMessage());
+                        }
+
+                    }
+                } catch (JSONException e) {
+                    Log.e(MainActivity.TAG,e.getMessage());
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.i(MainActivity.TAG,error.toString());
+            }
+        });
+        queue.add(jsonObjectRequest);
+
     }
 }

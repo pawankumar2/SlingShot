@@ -102,6 +102,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             public void onPictureTaken(final byte[] bytes, final Camera camera) {
                 shutterSound();
                 final int o = getOrientation();
+                orientationEventListener.disable();
                 showProgress(true);
                 new AsyncTask<Void, Void, String>() {
                     @Override
@@ -124,7 +125,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                         Bitmap image = BitmapFactory.decodeByteArray(bytes,0,bytes.length);
                         Bitmap rotatedBitmap = Bitmap.createBitmap(image , 0, 0, image.getWidth(), image.getHeight(), matrix, true);
                         ByteArrayOutputStream boas = new ByteArrayOutputStream();
-                        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG,1,boas);
+                        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG,100,boas);
                         String path = saveImage(boas.toByteArray());
                         Log.i(MainActivity.TAG,path);
 
@@ -192,74 +193,74 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 && potrait.length == land2.length){
 
             orientationEventListener.enable();
-            frameView.setOnTouchListener(new OnSwipe(getApplicationContext()){
+//            frameView.setOnTouchListener(new OnSwipe(getApplicationContext()){
+//
+//                public void onSwipeRight() {
+//                    int i = getOrientation();
+//                    frameIndex--;
+//                    if(i == 0){
+//                        if(frameIndex >=0 && frameIndex < potrait.length){
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                setFrame(potrait[frameIndex]);
+//                            }
+//                            Log.i(MainActivity.TAG,"frame changed -> right");}
+//                        else
+//                            frameIndex++;
+//                    }
+//                    else if(i == 1){
+//                        if(frameIndex >=0 && frameIndex < land2.length){
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                setFrame(land2[frameIndex]);
+//                            }
+//                            Log.i(MainActivity.TAG,"frame changed -> right");}
+//                        else
+//                            frameIndex++;
+//                    }
+//                    else if(i == 3){
+//                        if(frameIndex >=0 && frameIndex < land1.length){
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                setFrame(land1[frameIndex]);
+//                            }
+//                            Log.i(MainActivity.TAG,"frame changed -> right");}
+//                        else
+//                            frameIndex++;
+//                    }
+//
+//
+//                }
+//                public void onSwipeLeft() {
+//                    int i = getOrientation();
+//                    frameIndex++;
+//                    if(i == 0){
+//                        if(frameIndex >=0 && frameIndex < potrait.length){
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                setFrame(potrait[frameIndex]);
+//                            }
+//                            Log.i(MainActivity.TAG,"frame changed -> left");}
+//                        else
+//                            frameIndex--;
+//                    }
+//                    else if(i == 1){
+//                        if(frameIndex >=0 && frameIndex < land2.length){
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                setFrame(land2[frameIndex]);
+//                            }
+//                            Log.i(MainActivity.TAG,"frame changed -> left");}
+//                        else
+//                            frameIndex--;
+//                    }
+//                    else if(i == 3){
+//                        if(frameIndex >=0 && frameIndex < land1.length){
+//                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                                setFrame(land1[frameIndex]);
+//                            }
+//                            Log.i(MainActivity.TAG,"frame changed -> left");}
+//                        else
+//                            frameIndex--;
+//                    }
+//                }
 
-                public void onSwipeRight() {
-                    int i = getOrientation();
-                    frameIndex--;
-                    if(i == 0){
-                        if(frameIndex >=0 && frameIndex < potrait.length){
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setFrame(potrait[frameIndex]);
-                            }
-                            Log.i(MainActivity.TAG,"frame changed -> right");}
-                        else
-                            frameIndex++;
-                    }
-                    else if(i == 1){
-                        if(frameIndex >=0 && frameIndex < land2.length){
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setFrame(land2[frameIndex]);
-                            }
-                            Log.i(MainActivity.TAG,"frame changed -> right");}
-                        else
-                            frameIndex++;
-                    }
-                    else if(i == 3){
-                        if(frameIndex >=0 && frameIndex < land1.length){
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setFrame(land1[frameIndex]);
-                            }
-                            Log.i(MainActivity.TAG,"frame changed -> right");}
-                        else
-                            frameIndex++;
-                    }
-
-
-                }
-                public void onSwipeLeft() {
-                    int i = getOrientation();
-                    frameIndex++;
-                    if(i == 0){
-                        if(frameIndex >=0 && frameIndex < potrait.length){
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setFrame(potrait[frameIndex]);
-                            }
-                            Log.i(MainActivity.TAG,"frame changed -> left");}
-                        else
-                            frameIndex--;
-                    }
-                    else if(i == 1){
-                        if(frameIndex >=0 && frameIndex < land2.length){
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setFrame(land2[frameIndex]);
-                            }
-                            Log.i(MainActivity.TAG,"frame changed -> left");}
-                        else
-                            frameIndex--;
-                    }
-                    else if(i == 3){
-                        if(frameIndex >=0 && frameIndex < land1.length){
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                setFrame(land1[frameIndex]);
-                            }
-                            Log.i(MainActivity.TAG,"frame changed -> left");}
-                        else
-                            frameIndex--;
-                    }
-                }
-
-            });
+//            });
 
         }
         else
@@ -377,15 +378,20 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         }catch(Exception e){
             Log.e(MainActivity.TAG,e.getMessage());
         }
-        params = camera.getParameters();
+        //try{
+            params = camera.getParameters();
+        //}catch (NullPointerException e){
+       //     new Permissions(getApplicationContext(),CameraActivity.this).takePhoto();
+         //   finish();
+        //};
 
 
-        if(checkSize(getWidth(),getHeight()))
-            params.setPictureSize(getWidth(), getHeight());
-        else {
+
+
+
             Camera.Size size = getMaxSize();
             params.setPictureSize(size.width,size.height);
-        }
+
         if(getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
             params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         else{
@@ -406,9 +412,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         params.setJpegQuality(100);
         camera.setDisplayOrientation(90);
         camera.setParameters(params);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            camera.enableShutterSound(true);
-        }
+        camera.enableShutterSound(true);
         try {
             camera.setPreviewDisplay(surfaceHolder);
             camera.startPreview();
@@ -418,15 +422,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     }
 
-    private boolean checkSize(int width, int height) {
-        List<Camera.Size> sizes = params.getSupportedPictureSizes();
-        for (Camera.Size size : sizes) {
-            if(size.width == width && size.height == height){
-                return true;
-            }
-        }
-        return false;
-    }
+
 
 
     private int openFrontFacingCamera()
@@ -470,8 +466,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         orientationEventListener.disable();
     }
 
-    public int getHeight(){return getMaxSize().height;}
-    public int getWidth(){return getMaxSize().width;}
+
     public Camera.Size getMaxSize(){
         List<Camera.Size> sizes = params.getSupportedPictureSizes();
         Camera.Size size = sizes.get(0);
@@ -558,42 +553,42 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         return _orientationHistory[_highestIndex / 2];
     }
 
-    protected void orientationChanged(int lastOrientation, int currentOrientation) {
-
-        if(currentOrientation == 1){
-            int frameTobeSet;
-            if(frameIndex == land2.length)
-                frameTobeSet = land2[--frameIndex];
-            else if (frameIndex == -1)
-                frameTobeSet = land2[++frameIndex];
-            else
-                frameTobeSet = land2[frameIndex];
-            setFrame(frameTobeSet);
-
-            //params.setRotation(180);
-        }
-        else if(currentOrientation == 3){
-            int frameTobeSet;
-            if(frameIndex == land1.length)
-                frameTobeSet = land1[--frameIndex];
-            else if (frameIndex == -1)
-                frameTobeSet = land1[++frameIndex];
-            else
-                frameTobeSet = land1[frameIndex];
-            setFrame(frameTobeSet);
-            // params.setRotation(0);
-        }
-        else if(getOrientation() == 0){
-            int frameTobeSet;
-            if(frameIndex == potrait.length)
-                frameTobeSet = potrait[--frameIndex];
-            else if (frameIndex == -1)
-                frameTobeSet = potrait[++frameIndex];
-            else
-                frameTobeSet = potrait[frameIndex];
-            setFrame(frameTobeSet);
-        }
-        Log.d(MainActivity.TAG, "Orientation changed to " + currentOrientation + " from " + lastOrientation);
+   protected void orientationChanged(int lastOrientation, int currentOrientation) {
+//
+//        if(currentOrientation == 1){
+//            int frameTobeSet;
+//            if(frameIndex == land2.length)
+//                frameTobeSet = land2[--frameIndex];
+//            else if (frameIndex == -1)
+//                frameTobeSet = land2[++frameIndex];
+//            else
+//                frameTobeSet = land2[frameIndex];
+//            setFrame(frameTobeSet);
+//
+//            //params.setRotation(180);
+//        }
+//        else if(currentOrientation == 3){
+//            int frameTobeSet;
+//            if(frameIndex == land1.length)
+//                frameTobeSet = land1[--frameIndex];
+//            else if (frameIndex == -1)
+//                frameTobeSet = land1[++frameIndex];
+//            else
+//                frameTobeSet = land1[frameIndex];
+//            setFrame(frameTobeSet);
+//            // params.setRotation(0);
+//        }
+//        else if(getOrientation() == 0){
+//            int frameTobeSet;
+//            if(frameIndex == potrait.length)
+//                frameTobeSet = potrait[--frameIndex];
+//            else if (frameIndex == -1)
+//                frameTobeSet = potrait[++frameIndex];
+//            else
+//                frameTobeSet = potrait[frameIndex];
+//            setFrame(frameTobeSet);
+//        }
+//        Log.d(MainActivity.TAG, "Orientation changed to " + currentOrientation + " from " + lastOrientation);
     }
     public void shutterSound(){
         AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -646,9 +641,9 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         super.onDestroy();
         orientationEventListener.disable();
     }
-    private void setFrame(int frame){
-        surfaceView.setForeground(getDrawable(frame));
-    }
+//   / private void setFrame(int frame){
+//        surfaceView.setForeground(getDrawable(frame));
+//    }
 
 
 }

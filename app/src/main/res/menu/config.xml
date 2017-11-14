@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:title="Calibrate"
-        android:id="@+id/calibrate"/>
+    android:id="@+id/calibrate"
+    android:title="calibrate"/>
     <item
-        android:title="Clear Screen"
-        android:id="@+id/clear"/>
+        android:id="@+id/clear"
+        android:title="Clear Screen"/>
     <item
-        android:title="Set mqtt IP"
-        android:id="@+id/mip"/>
+        android:id="@+id/mip"
+        android:title="MqttIP"/>
+    <item android:title="UploadIp"
+        android:id="@+id/uip"></item>
     <item
-        android:title="Set upload IP"
-        android:id="@+id/uip"/>
-    <item
-        android:title="Topic"
-        android:id="@+id/topic"/>
-
+        android:id="@+id/topic"
+        android:title="Topic"/>
+    <!--<item-->
+        <!--android:id="@+id/shut"-->
+        <!--android:title="ShutDown"/>-->
 </menu>
