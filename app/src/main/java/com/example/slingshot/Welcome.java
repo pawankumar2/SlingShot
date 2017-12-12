@@ -1,13 +1,21 @@
 package com.example.slingshot;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.nfc.Tag;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -39,6 +47,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.zip.Inflater;
@@ -55,6 +68,12 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     private float[] values = new float[3];
     private SharedPreferences sp;
     public static final String TAG = "MainActivity";
+    File portrait0;
+    private String appDataLocation;
+    private File frames;
+    private final static int SELECT_PORTRAIT = 3;
+    View mProgressView;
+    View mWelcomeFormView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +84,16 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         sp = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
+        ContextWrapper cWrapper = new ContextWrapper(this);
+        appDataLocation = cWrapper.getFilesDir().getAbsolutePath();
+
+        mProgressView = findViewById(R.id.welcome_progress);
+        mWelcomeFormView = findViewById(R.id.welcome_form);
+        frames = new File(appDataLocation + "/Frames");
+        frames.mkdir();
+
+        portrait0 = new File(appDataLocation + "/Frames/portrait0");
+        portrait0.mkdir();
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,6 +135,10 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         }
         else if (item.getItemId() == R.id.uip)
             set(0);
+        else if (item.getItemId() == R.id.campaign)
+            set(4);
+        else if (item.getItemId() == R.id.devicename)
+            set(5);
 //        else if(item.getItemId() == R.id.shut){
 //            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //            builder.setMessage("Are you sure you want to shutdown the system?")
@@ -123,6 +156,32 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 //            });
 //            builder.create().show();
 //        }
+        else if(item.getItemId() == R.id.portrait){
+            Intent intent = new Intent();
+            intent.setType("image/png");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent, "Select File"),SELECT_PORTRAIT);
+        }
+            else if(item.getItemId() == R.id.delete) {
+            AlertDialog.Builder delete = new AlertDialog.Builder(Welcome.this);
+            delete.setMessage("Are you sure you want to delete all the frames?")
+                    .setTitle("Delete Frames")
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int j) {
+
+                            if (portrait0.listFiles().length != 0)
+                                portrait0.listFiles()[0].delete();
+
+                            Toast.makeText(getApplicationContext(), portrait0.listFiles().length + " frames remaining", Toast.LENGTH_LONG).show();
+
+
+                        }
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        }
+
         return true;
     }
     public void send (int i){
@@ -169,12 +228,20 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
             builder.setTitle("Enter Topic");
             text.setHint(sp.getString("topic","topic"));
         }
+        else if(n == 4){
+            builder.setTitle("Enter campaign");
+            text.setHint(sp.getString("campaign","campaign"));
+        }
+        else if(n==5){
+            builder.setTitle("Enter devicename");
+            text.setHint(sp.getString("devicename","devicename"));
+        }
         builder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 Log.i(MainActivity.TAG,"OKAY Pressed");
 
-                String converted = text.getText().toString();
+                String converted = text.getText().toString().replace(" ", "");
                 if(converted.length() != 0){
                     Log.i(MainActivity.TAG,"\nname = " + text);
                     SharedPreferences.Editor editor = sp.edit();
@@ -184,12 +251,16 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                         editor.putString("mip", converted);
                     else if (n==2) {
                         //editor.putString("tag", converted);
-                        getUid(converted.replace(" ", ""));
+                        getUid(converted);
                         startActivity(new Intent(Welcome.this, CameraActivity.class));
                     }
                     else if(n==3){
-                        editor.putString("topic",converted.replace(" ",""));
+                        editor.putString("topic",converted);
                     }
+                    else if(n==4)
+                        editor.putString("campaign",converted);
+                    else if(n==5)
+                        editor.putString("devicename",converted);
                     editor.commit();
 
                 }
@@ -322,41 +393,191 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 
     private void getUid(final String tagid) {
 
-        final String url = "http://socialact.in/api/social-users/uhf-testing" ;
-        RequestQueue queue = Volley.newRequestQueue(this);
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                JSONArray arrayResponse = null;
-                try {
-                    arrayResponse = response.getJSONArray("data");
-                    for(int i = 0; i<arrayResponse.length();i++){
-                        try {
-                            JSONObject user = arrayResponse.getJSONObject(i);
+        String campaign = sp.getString("campaign",null);
+        if(campaign == null)
+            Toast.makeText(getApplicationContext(),"Enter campaign ",Toast.LENGTH_LONG).show();
+        else{
 
-                            if(tagid.equals(user.getString("band_number"))){
-                                SharedPreferences.Editor editor = sp.edit();
-                                Log.i(MainActivity.TAG,"uid = " + user.getString("band_uid"));
-                                editor.putString("band_uid",user.getString("band_uid"));
-                                editor.commit();
+            final String url = "http://socialact.in/api/social-users/"+campaign ;
+            RequestQueue queue = Volley.newRequestQueue(this);
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    JSONArray arrayResponse = null;
+                    try {
+                        arrayResponse = response.getJSONArray("data");
+                        for(int i = 0; i<arrayResponse.length();i++){
+                            try {
+                                JSONObject user = arrayResponse.getJSONObject(i);
+
+                                if(tagid.equals(user.getString("band_number"))){
+                                    SharedPreferences.Editor editor = sp.edit();
+                                    Log.i(MainActivity.TAG,"uid = " + user.getString("band_uid") + "\n name =  "+ user.getString("name"));
+                                    editor.putString("band_uid",user.getString("band_uid"));
+                                    editor.putString("name",user.getString("name"));
+                                    editor.commit();
+                                }
+                            } catch (JSONException e) {
+                                Log.e(MainActivity.TAG,e.getMessage());
                             }
-                        } catch (JSONException e) {
-                            Log.e(MainActivity.TAG,e.getMessage());
+
                         }
-
+                    } catch (JSONException e) {
+                        Log.e(MainActivity.TAG,e.getMessage());
                     }
-                } catch (JSONException e) {
-                    Log.e(MainActivity.TAG,e.getMessage());
-                }
 
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.i(MainActivity.TAG,error.toString());
+                }
+            });
+            queue.add(jsonObjectRequest);
+
+        }
+    }
+    private void onSelectFromGalleryResult(Intent data,int requestCode) {
+        Log.i(TAG, " " + requestCode);
+        Bitmap bm = null;
+        if (data != null) {
+            try {
+                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.i(MainActivity.TAG,error.toString());
-            }
-        });
-        queue.add(jsonObjectRequest);
+        }
+        if (requestCode == SELECT_PORTRAIT)
+            addFrame(bm, portrait0);
+//        else {
+//            Matrix matrix1 = new Matrix();
+//            matrix1.postRotate(90);
+//            Bitmap rotateLand1 = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix1, true);
+//            Matrix matrix2 = new Matrix();
+//            matrix2.postRotate(270);
+//            Bitmap rotateLand2 = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix2, true);
+//            addFrame(rotateLand1, land1);
+//            addFrame(rotateLand2, land2);
+    //}
+
 
     }
+    public void onActivityResult(final int requestCode, int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == SELECT_PORTRAIT){
+            if (resultCode == RESULT_OK) {
+                showProgress(true);
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        onSelectFromGalleryResult(data,requestCode);
+                        Log.i(TAG,"got result for portrait");
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        super.onPostExecute(aVoid);
+                        Toast.makeText(getApplicationContext(),"Frame was added",Toast.LENGTH_SHORT).show();
+                        showProgress(false);
+                    }
+                }.execute();
+
+            }
+        }
+
+//        if(requestCode == SELECT_LAND) {
+//            if (resultCode == RESULT_OK) {
+//                showProgress(true);
+//                new AsyncTask<Void, Void, Void>() {
+//                    @Override
+//                    protected Void doInBackground(Void... voids) {
+//                        onSelectFromGalleryResult(data, requestCode);
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    protected void onPostExecute(Void aVoid) {
+//                        super.onPostExecute(aVoid);
+//                        Toast.makeText(getApplicationContext(), "Frame was added", Toast.LENGTH_SHORT).show();
+//                        showProgress(false);
+//                    }
+//                }.execute();
+
+//                Uri imageUri = CropImage.getPickImageResultUri(this, data);
+//                startCropImageActivity(imageUri);
+          //  }
+
+//        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+//            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+//            if (resultCode == RESULT_OK) {
+//                Uri resultUri = result.getUri();
+//                Log.i(TAG, resultUri.toString());
+//                Bitmap bitmap = null;
+//                try {
+//                    bitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), resultUri);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                // saveFile(resultUri, portrait0);
+//                addFrame(bitmap,portrait0);
+//            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+//                Exception error = result.getError();
+//
+//            }
+//        }
+        }
+    //}
+
+
+
+    private void addFrame(Bitmap bitmap, File file1 ){
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG,100,baos);
+            File file = new File(file1.getAbsolutePath() + "/frame" + file1.listFiles().length + ".png");
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(baos.toByteArray());
+            Log.w(Welcome.TAG,file.getAbsolutePath());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mWelcomeFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            mWelcomeFormView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mWelcomeFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mWelcomeFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+
 }

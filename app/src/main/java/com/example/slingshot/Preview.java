@@ -1,6 +1,7 @@
 package com.example.slingshot;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +12,7 @@ import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
+import android.support.v4.print.PrintHelper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,7 +49,7 @@ public class Preview extends AppCompatActivity {
     private SharedPreferences pref;
     private Button retake;
     private int orientation;
-    private int [] portrait = {R.drawable.overlay,R.drawable.photoframe};
+    private File [] portrait;// = {R.drawable.overlay,R.drawable.photoframe};
     private int [] land = {R.drawable.overlay0,R.drawable.photoframe0};
     private  Bitmap combinedImage;
     private int applyFrame;
@@ -60,14 +62,18 @@ public class Preview extends AppCompatActivity {
         path = getIntent().getStringExtra("path");
         orientation = getIntent().getIntExtra("orientation",0);
         applyFrame = getIntent().getIntExtra("frame",0);
+        ContextWrapper cWrapper = new ContextWrapper(this);
+        portrait = new File(cWrapper.getFilesDir().getAbsolutePath() + "/Frames/portrait0").listFiles();
         preview = (ImageView) findViewById(R.id.preview);
         final CheckBox fb = (CheckBox) findViewById(R.id.share);
         moveForward = (Button) findViewById(R.id.moveForward);
         retake = (Button) findViewById(R.id.retake);
         pref = getApplicationContext().getSharedPreferences("data", Context.MODE_PRIVATE);
+        final CheckBox print = (CheckBox) findViewById(R.id.print);
         dirWaiting = new File( Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picShot/Waiting/");
         dirWaiting.mkdir();
+        final CheckBox email = (CheckBox)findViewById(R.id.email);
         moveForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -78,10 +84,17 @@ public class Preview extends AppCompatActivity {
                     finish();
                 }
                 int i = 0;
+                int j =0;
                 dialog();
                 if(fb.isChecked())
                     i = 1;
-                saveImage(i);
+                if(email.isChecked())
+                    j=1;
+                if (print.isChecked()){
+                    Toast.makeText(getApplicationContext(),"printing...", Toast.LENGTH_LONG).show();
+                    print();
+                }
+                saveImage(i,j);
                 new Uploader().sendImage(path,ip);
 
 
@@ -123,6 +136,7 @@ public class Preview extends AppCompatActivity {
                     editor.putString("image",path);
                     editor.commit();
                         startActivity(new Intent(Preview.this,Shot.class));
+                        finish();
 
                 }
 
@@ -150,19 +164,21 @@ public class Preview extends AppCompatActivity {
         if(imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             Bitmap frame;
-            if (orientation == 0)
-                frame = BitmapFactory.decodeResource(getResources(), portrait[applyFrame]);
-            else
-                frame = BitmapFactory.decodeResource(getResources(), land[applyFrame]);
-            combinedImage = myBitmap;//combineImages(frame, myBitmap);
+//            if (orientation == 0)
+                frame =  bitmap(portrait[applyFrame]);;
+//            else
+//                frame = BitmapFactory.decodeResource(getResources(), land[applyFrame]);
+            combinedImage = combineImages(frame, myBitmap);
             preview.setImageBitmap(combinedImage);
             Log.i(MainActivity.TAG, "Bitmap added");
 
         }
     }
+    private Bitmap bitmap(File file){
+        return BitmapFactory.decodeFile(file.getAbsolutePath());
+    }
 
-
-    private void saveImage(final int i ){
+    private void saveImage(final int i, final int j ){
 
         final Bitmap image = combinedImage;
         new AsyncTask<Void, Void, Void>() {
@@ -171,7 +187,7 @@ public class Preview extends AppCompatActivity {
                 final File[] pictureFile = new File[1];
 
 
-                pictureFile[0] = getOutputMediaFile(i);
+                pictureFile[0] = getOutputMediaFile(i,j);
 
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
@@ -204,7 +220,7 @@ public class Preview extends AppCompatActivity {
 
 
 
-    private  File getOutputMediaFile(int i) {
+    private  File getOutputMediaFile(int i, int j) {
 
         Long timeStamp = System.currentTimeMillis();
         Log.i(Welcome.TAG, String.valueOf(timeStamp));
@@ -215,7 +231,7 @@ public class Preview extends AppCompatActivity {
         Log.i(Welcome.TAG,uid);
         File mediaFile;
         mediaFile = new File(dirWaiting.getPath() + File.separator + uid
-                + "__"+ i + "__" + 0+ "__"+ timeStamp + ".jpeg");
+                + "__"+ i + "__" + j+ "__"+ timeStamp + ".jpeg");
         Log.i(Welcome.TAG,"Got file");
         Log.i(Welcome.TAG,mediaFile.getParent() + " - " + mediaFile.getName() + " - " + mediaFile.getPath());
 
@@ -223,7 +239,11 @@ public class Preview extends AppCompatActivity {
     }
 
 
-
+    public void print(){
+        PrintHelper photoPrinter = new PrintHelper(Preview.this );
+        photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FIT);
+        photoPrinter.printBitmap("image", combinedImage);
+    }
 
     private boolean delImage(String path){
         File file = new File(path);

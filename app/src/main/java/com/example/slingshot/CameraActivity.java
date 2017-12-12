@@ -3,6 +3,7 @@ package com.example.slingshot;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -63,9 +64,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     private SharedPreferences rfid;
 
-    private int [] potrait = {R.drawable.overlay,R.drawable.photoframe};
-    private int [] land1 = {R.drawable.overlay3,R.drawable.photoframe3};;
-    private int [] land2 = {R.drawable.overlay1,R.drawable.photoframe1};;
+    private File [] portrait;// = {R.drawable.overlay,R.drawable.photoframe};
+
     private int frameIndex = 0;
     private  View frameView;
     private View progressForm;
@@ -82,6 +82,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         capture = (FloatingActionButton) findViewById(R.id.capture);
         surfaceView = (SurfaceView) findViewById(R.id.cameraView);
         surfaceHolder = surfaceView.getHolder();
+
         surfaceHolder.addCallback(this);
         flash = (ImageView) findViewById(R.id.flash);
         rfid = getApplicationContext().getSharedPreferences("rfid",Context.MODE_PRIVATE);
@@ -89,6 +90,16 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         progressForm = findViewById(R.id.progressForm);
         progress = (ProgressBar) findViewById(R.id.previewProgress);
         previewForm = findViewById(R.id.frameView);
+
+        ContextWrapper cWrapper = new ContextWrapper(this);
+        portrait =  new File(cWrapper.getFilesDir().getAbsolutePath() + "/Frames/portrait0").listFiles();
+        Log.w(Welcome.TAG, ""+portrait.length );
+        try{
+            setFrame(portrait[0]);
+        }
+        catch (ArrayIndexOutOfBoundsException | NullPointerException e){
+            Log.e(Welcome.TAG,e.getMessage());
+        }
         final int cameraCount = Camera.getNumberOfCameras();
 
         capture.setOnClickListener(new FloatingActionButton.OnClickListener() {
@@ -138,7 +149,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                         Intent i = new Intent(CameraActivity.this,Preview.class);
                         i.putExtra("path",s);
                         i.putExtra("orientation",o);
-                        if(frameIndex == potrait.length)
+                        if(frameIndex == portrait.length)
                             i.putExtra("frame",--frameIndex);
                         else if (frameIndex == -1)
                             i.putExtra("frame",0);
@@ -188,11 +199,11 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
                 }
             }
         };
-        if(potrait.length != 0 && land1.length != 0
-                && land2.length != 0 && land1.length == potrait.length
-                && potrait.length == land2.length){
-
-            orientationEventListener.enable();
+//        if(potrait.length != 0 && land1.length != 0
+//                && land2.length != 0 && land1.length == potrait.length
+//                && potrait.length == land2.length){
+//
+//            orientationEventListener.enable();
 //            frameView.setOnTouchListener(new OnSwipe(getApplicationContext()){
 //
 //                public void onSwipeRight() {
@@ -262,8 +273,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
 //            });
 
-        }
-        else
+        //}
+        //else
             orientationEventListener.disable();
         changeCamera = (ImageView) findViewById(R.id.changeCamera);
         if(cameraCount == 1){
@@ -315,6 +326,11 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             }
         });
 
+    }
+    private void setFrame(File file){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            surfaceView.setForeground(new BitmapDrawable(getResources(),BitmapFactory.decodeFile(file.getPath())));
+        }
     }
 
     private static File getOutputMediaFile() {

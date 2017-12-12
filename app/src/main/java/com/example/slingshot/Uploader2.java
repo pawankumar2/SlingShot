@@ -74,63 +74,67 @@ public class Uploader2  {
         final String social = getSocial(file.getName());
         final String email = getEmail(file.getName());
         final String timestamp = getTimestamp(file.getName());
-        final String deviceName = rfid.getString("device name", "uhf-photo");
+        final String deviceName = rfid.getString("devicename", null);
         Log.i(Welcome.TAG, uid + " " + social + " " + email);
 
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+        if(deviceName == null)
+            Toast.makeText(mContext,"Add device name",Toast.LENGTH_LONG).show();
+        else{
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
 
 // Change base URL to your upload server URL.
-        Service service = new Retrofit.Builder().baseUrl(URL).client(client).build().create(Service.class);
+            Service service = new Retrofit.Builder().baseUrl(URL).client(client).build().create(Service.class);
 
 
-        RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
-        MultipartBody.Part body = MultipartBody.Part.createFormData("picture",file.getName(), reqFile);
-        RequestBody s = RequestBody.create(MediaType.parse("text/plain"), social);
-        RequestBody e = RequestBody.create(MediaType.parse("text/plain"), email);
-        RequestBody d;
-        d = RequestBody.create(MediaType.parse("text/plain"), deviceName);
-        RequestBody t = RequestBody.create(MediaType.parse("text/plain"), uid);
+            RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
+            MultipartBody.Part body = MultipartBody.Part.createFormData("picture",file.getName(), reqFile);
+            RequestBody s = RequestBody.create(MediaType.parse("text/plain"), social);
+            RequestBody e = RequestBody.create(MediaType.parse("text/plain"), email);
+            RequestBody d;
+            d = RequestBody.create(MediaType.parse("text/plain"), deviceName);
+            RequestBody t = RequestBody.create(MediaType.parse("text/plain"), uid);
 
-        retrofit2.Call<okhttp3.ResponseBody> req = service.postImage(body, s,e,d,t);
-        Log.w(Welcome.TAG,"uploading image...");
-        req.enqueue(new Callback<ResponseBody>() {
+            retrofit2.Call<okhttp3.ResponseBody> req = service.postImage(body, s,e,d,t);
+            Log.w(Welcome.TAG,"uploading image...");
+            req.enqueue(new Callback<ResponseBody>() {
 
-            @Override
-            public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
-                //Log.i(MainActivity.TAG,response.message());
-                String resultResponse = null;
-                try {
-                    resultResponse = response.body().string();
-                } catch (IOException e1){
-                    e1.printStackTrace();
+                @Override
+                public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
+                    //Log.i(MainActivity.TAG,response.message());
+                    String resultResponse = null;
+                    try {
+                        resultResponse = response.body().string();
+                    } catch (IOException e1){
+                        e1.printStackTrace();
+                    }
+                    if (resultResponse.equalsIgnoreCase("SUCCESS")) {
+                        Log.i(Welcome.TAG, dirSuccess.getPath() + File.separator + file.getName());
+                        moveFile(dirSuccess.getPath() + File.separator + file.getName(), file);
+                        Log.i(Welcome.TAG, "Image uploaded...");
+                        Toast.makeText(mContext, "Image Uploaded", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Log.i(Welcome.TAG, dirFailed.getPath() + File.separator + file.getName());
+                        moveFile(dirFailed.getPath() + File.separator + file.getName(), file);
+                        Toast.makeText(mContext, "Failed" + resultResponse, Toast.LENGTH_LONG).show();
+                        Log.i(Welcome.TAG, "image upload failed..." + resultResponse);
+                    }
+                    if (dirWaiting.listFiles().length != 0) {
+                        File[] list = dirWaiting.listFiles();
+                        Log.w(Welcome.TAG,"next image");
+                        upload(list[0]);
+                    }
                 }
-                if (resultResponse.equalsIgnoreCase("SUCCESS")) {
-                    Log.i(Welcome.TAG, dirSuccess.getPath() + File.separator + file.getName());
-                    moveFile(dirSuccess.getPath() + File.separator + file.getName(), file);
-                    Log.i(Welcome.TAG, "Image uploaded...");
-                    Toast.makeText(mContext, "Image Uploaded", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.i(Welcome.TAG, dirFailed.getPath() + File.separator + file.getName());
-                    moveFile(dirFailed.getPath() + File.separator + file.getName(), file);
-                    Toast.makeText(mContext, "Failed" + resultResponse, Toast.LENGTH_LONG).show();
-                    Log.i(Welcome.TAG, "image upload failed..." + resultResponse);
-                }
-                if (dirWaiting.listFiles().length != 0) {
-                    File[] list = dirWaiting.listFiles();
-                    Log.w(Welcome.TAG,"next image");
-                    upload(list[0]);
-                }
-            }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e(Welcome.TAG,t.getMessage());
-                Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e(Welcome.TAG,t.getMessage());
+                    Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
+                }
+            });
 
+        }
     }
 
     private String getTimestamp(String name){

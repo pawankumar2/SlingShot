@@ -97,7 +97,12 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         }
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
     }
-
+    @Override
+    protected void onDestroy() {
+                calc(2);
+                disconnect();
+                super.onDestroy();
+    }
     @Override
     public void onSensorChanged(SensorEvent event) {
         fallbackk++;
