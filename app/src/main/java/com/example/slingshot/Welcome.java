@@ -369,7 +369,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
             Toast.makeText(getApplicationContext(),"set mqtt ip",Toast.LENGTH_LONG).show();
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-    new Uploader2(getApplicationContext());
+        new Uploader2(getApplicationContext(),sp.getString("devicename",null));
     }
     public void disconnect(){
         try {
@@ -416,6 +416,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                                     editor.putString("band_uid",user.getString("band_uid"));
                                     editor.putString("name",user.getString("name"));
                                     editor.commit();
+                                    break;
                                 }
                             } catch (JSONException e) {
                                 Log.e(MainActivity.TAG,e.getMessage());

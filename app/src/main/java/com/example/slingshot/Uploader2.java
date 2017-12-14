@@ -36,20 +36,20 @@ public class Uploader2  {
     private File dirWaiting;
     private File dirFailed;
     private File dirSuccess;
-    private SharedPreferences rfid;
     Context mContext;
+    private  String deviceName = null;
 
-    Uploader2(Context context){
+    Uploader2(Context context,String device){
 
-        rfid = context.getSharedPreferences("rfid", Context.MODE_PRIVATE);
         mContext = context;
-        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),"picShot").mkdir();
+        deviceName = device;
+        new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),"picshot").mkdir();
         dirWaiting = new File(Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picShot/Waiting/");
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picshot/Waiting/");
         dirSuccess = new File(Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picShot/Success/");
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picshot/Success/");
         dirFailed = new File(Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picShot/Failed/");
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picshot/Failed/");
         dirWaiting.mkdir();
         dirSuccess.mkdir();
         dirFailed.mkdir();
@@ -74,7 +74,6 @@ public class Uploader2  {
         final String social = getSocial(file.getName());
         final String email = getEmail(file.getName());
         final String timestamp = getTimestamp(file.getName());
-        final String deviceName = rfid.getString("devicename", null);
         Log.i(Welcome.TAG, uid + " " + social + " " + email);
 
         if(deviceName == null)

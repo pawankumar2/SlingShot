@@ -3,8 +3,10 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://D:\burhan\android\picshot\app\app.iml" filepath="D:\burhan\android\picshot\app\app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/picshot.iml" filepath="$PROJECT_DIR$/picshot.iml" />
       <module fileurl="file://D:\burhan\android\slingshot2\slingshot.iml" filepath="D:\burhan\android\slingshot2\slingshot.iml" />
-      <module fileurl="file://$PROJECT_DIR$/slingshot2.iml" filepath="$PROJECT_DIR$/slingshot2.iml" />
+      <module fileurl="file://D:\burhan\android\picshot\slingshot2.iml" filepath="D:\burhan\android\picshot\slingshot2.iml" />
     </modules>
   </component>
 </project>

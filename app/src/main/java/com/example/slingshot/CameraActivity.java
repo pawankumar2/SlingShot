@@ -337,7 +337,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
         File mediaStorageDir = new File(
                 Environment
-                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "SlingShot");
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picshot");
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
                 Log.d(MainActivity.TAG, "failed to create directory");
@@ -485,11 +485,12 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     public Camera.Size getMaxSize(){
         List<Camera.Size> sizes = params.getSupportedPictureSizes();
-        Camera.Size size = sizes.get(0);
-        for (int i = 0; i < sizes.size(); i++) {
-            if (sizes.get(i).width > size.width)
-                size = sizes.get(i);
-        }
+        Camera.Size size = sizes.get(10);
+//        for (int i = 0; i < sizes.size(); i++) {
+//            if (sizes.get(i).width > size.width)
+//                size = sizes.get(i);
+//        }
+        Log.i(Welcome.TAG,""+sizes.get(10).width + "X" + sizes.get(10).height);
         return size;
     }
     @Override

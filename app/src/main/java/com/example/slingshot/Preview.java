@@ -54,7 +54,7 @@ public class Preview extends AppCompatActivity {
     private  Bitmap combinedImage;
     private int applyFrame;
     private  File dirWaiting;
-
+    private String newPath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,7 +71,7 @@ public class Preview extends AppCompatActivity {
         pref = getApplicationContext().getSharedPreferences("data", Context.MODE_PRIVATE);
         final CheckBox print = (CheckBox) findViewById(R.id.print);
         dirWaiting = new File( Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picShot/Waiting/");
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picshot/Waiting/");
         dirWaiting.mkdir();
         final CheckBox email = (CheckBox)findViewById(R.id.email);
         moveForward.setOnClickListener(new View.OnClickListener() {
@@ -94,8 +94,8 @@ public class Preview extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(),"printing...", Toast.LENGTH_LONG).show();
                     print();
                 }
-                saveImage(i,j);
-                new Uploader().sendImage(path,ip);
+                saveImage(i,j,ip);
+
 
 
 
@@ -133,7 +133,7 @@ public class Preview extends AppCompatActivity {
                     Log.i(MainActivity.TAG,"\nname = " + fullName);
                     SharedPreferences.Editor editor = pref.edit();
                     editor.putString("name",fullName);
-                    editor.putString("image",path);
+                    editor.putString("image",newPath);
                     editor.commit();
                         startActivity(new Intent(Preview.this,Shot.class));
                         finish();
@@ -157,18 +157,19 @@ public class Preview extends AppCompatActivity {
     private void addImage() {
         Log.i(MainActivity.TAG, "This is where the image came from -> " + path);
         final File imgFile = new File(path);
-        Handler handler = new Handler();
-//        handler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
+
         if(imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
             Bitmap frame;
-//            if (orientation == 0)
-                frame =  bitmap(portrait[applyFrame]);;
-//            else
-//                frame = BitmapFactory.decodeResource(getResources(), land[applyFrame]);
-            combinedImage = combineImages(frame, myBitmap);
+            if(portrait.length != 0){
+                if (orientation == 0)
+                    frame =  bitmap(portrait[applyFrame]);
+                else
+                    frame = BitmapFactory.decodeResource(getResources(), land[applyFrame]);
+                combinedImage = combineImages(frame, myBitmap);
+            }
+            else
+                combinedImage = myBitmap;
             preview.setImageBitmap(combinedImage);
             Log.i(MainActivity.TAG, "Bitmap added");
 
@@ -178,7 +179,7 @@ public class Preview extends AppCompatActivity {
         return BitmapFactory.decodeFile(file.getAbsolutePath());
     }
 
-    private void saveImage(final int i, final int j ){
+    private void saveImage(final int i, final int j , final String ip){
 
         final Bitmap image = combinedImage;
         new AsyncTask<Void, Void, Void>() {
@@ -208,7 +209,8 @@ public class Preview extends AppCompatActivity {
                 delImage(path);
                 MediaScannerConnection.scanFile(getApplicationContext(), new String[] { path }, new String[] { "image/jpeg" }, null);
                 MediaScannerConnection.scanFile(getApplicationContext(), new String[] { pictureFile[0].getPath() }, new String[] { "image/jpeg" }, null);
-
+                newPath = pictureFile[0].getPath();
+                new Uploader().sendImage(newPath,ip);
                 return null;
             }
 

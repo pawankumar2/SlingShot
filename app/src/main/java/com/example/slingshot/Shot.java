@@ -38,7 +38,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float azimuth;
     private float pitch;
     static final float ALPHA = 0.25f;
-    private static final int SHAKE_THRESHOLD = 250;
+    private static final int SHAKE_THRESHOLD = 100;
     private long lastUpdate = System.currentTimeMillis();
     private String name;
     private String pledge;
