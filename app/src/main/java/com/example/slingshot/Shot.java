@@ -38,7 +38,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float azimuth;
     private float pitch;
     static final float ALPHA = 0.25f;
-    private static final int SHAKE_THRESHOLD = 100;
+    private int SHAKE_THRESHOLD;
     private long lastUpdate = System.currentTimeMillis();
     private String name;
     private String pledge;
@@ -60,7 +60,8 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         topic = sp.getString("topic",null);
         tag = sp.getString("band_uid",null);
         String ip = sp.getString("mip",null);
-        Log.i(MainActivity.TAG,"name: " + name + "\npledge: " + pledge);
+        SHAKE_THRESHOLD = Integer.parseInt(sp.getString("hold","-7"));
+        Log.i(MainActivity.TAG,"name: " + name + "\npledge: " + pledge + "\nhold: " + SHAKE_THRESHOLD);
         if(ip == null){
             Toast.makeText(getApplicationContext(),"set mqtt ip in the menu",Toast.LENGTH_LONG).show();
             startActivity(new Intent(Shot.this,Welcome.class));
@@ -114,43 +115,33 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
             case Sensor.TYPE_ACCELEROMETER:
                 accels = lowPass(event.values.clone(),accels);
 
-                long curTime = System.currentTimeMillis();
-                // only allow one update every 100ms.
-                //if ((curTime - lastUpdate) > 100) {
-                    long diffTime = (curTime - lastUpdate);
-                    lastUpdate = curTime;
+            case Sensor.TYPE_LINEAR_ACCELERATION :
 
-                    y = accels[1];
-              //  Log.i(MainActivity.TAG,"difftime= " + diffTime);
+                y = event.values[1];
+                Log.w(Welcome.TAG," " + y);
 
-                    float speed = Math.abs(y  - last_y) / diffTime * 10000;
-                    //Log.i(MainActivity.TAG," " + speed);
-
-
-                    if (speed > SHAKE_THRESHOLD && speed < 5000 && mags != null && accels != null && fallbackk >50 ) {
-                        mSensorManager.unregisterListener(this);
-                        Log.i(MainActivity.TAG,""+fallbackk);
-                        Log.w(MainActivity.TAG,"shaked");
-                        Log.i(MainActivity.TAG,"speed= " + speed);
-                        calc(1);
-                        startActivity(new Intent(Shot.this,Welcome.class));
-                        last_y = 0;
-                        calc(2);
-                        disconnect();
-                        finish();
-                    }
-                    last_y = y;
-                //}
-
+                if (/*speed > SHAKE_THRESHOLD && speed < 5000*/ y <SHAKE_THRESHOLD && mags != null && accels != null ){//&& fallbackk >75 ) {
+                    mSensorManager.unregisterListener(this);
+                    Log.i(MainActivity.TAG,""+fallbackk);
+                    Log.w(MainActivity.TAG,"shaked");
+                    Log.i(MainActivity.TAG,"speed= " + y);
+                    calc(1);
+                    startActivity(new Intent(Shot.this,Welcome.class));
+                    last_y = 0;
+                    calc(2);
+                    // disconnect();
+                    finish();
+                }
+                last_y = y;
                 break;
         }
 
         if (mags != null && accels != null) {
-            if(i > 3 ){
+           // if(i > 3 ){
                 calc(0);
-                i =0;
-            }
-            i++;
+//                i =0;
+//            }
+//            i++;
            // Log.i(MainActivity.TAG," "+ i);
 
        }
@@ -169,6 +160,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         super.onResume();
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
     }
 
     @Override

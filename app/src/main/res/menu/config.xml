@@ -26,6 +26,9 @@
     <item
         android:id="@+id/delete"
         android:title="Delete Frame"/>
+    <item
+        android:id="@+id/hold"
+        android:title="Add threshold"/>
     <!--<item-->
         <!--android:id="@+id/shut"-->
         <!--android:title="ShutDown"/>-->

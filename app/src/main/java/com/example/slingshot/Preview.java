@@ -78,29 +78,35 @@ public class Preview extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                String ip = pref.getString("uip",null);
-                if(ip == null){
-                    Toast.makeText(getApplicationContext(),"Enter upload ip",Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(Preview.this,Welcome.class));
-                    finish();
-                }
                 int i = 0;
                 int j =0;
-                dialog();
-                if(fb.isChecked())
-                    i = 1;
-                if(email.isChecked())
-                    j=1;
-                if (print.isChecked()){
-                    Toast.makeText(getApplicationContext(),"printing...", Toast.LENGTH_LONG).show();
-                    print();
+
+                if(fb.isChecked() || email.isChecked() || print.isChecked()){
+                    if(fb.isChecked())
+                        i = 1;
+                    if(email.isChecked())
+                        j=1;
+                    if (print.isChecked()){
+                        Toast.makeText(getApplicationContext(),"printing...", Toast.LENGTH_LONG).show();
+                        print();
+                    }
+                    saveImage(i,j,ip);
+                    if(pref.getString("name",null) == ""){
+                        dialog();
+                    }
+                    else{
+
+                        SharedPreferences.Editor editor = pref.edit();
+                        editor.putString("image",path);
+                        editor.commit();
+                        startActivity(new Intent(Preview.this,Shot.class));
+                        finish();
+
+                    }
+
                 }
-                saveImage(i,j,ip);
-
-
-
-
-
-
+                else
+                    Toast.makeText(getApplicationContext(),"Please select an option from above",Toast.LENGTH_LONG).show();
             }
         });
         retake.setOnClickListener(new View.OnClickListener() {

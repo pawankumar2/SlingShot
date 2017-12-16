@@ -181,6 +181,9 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                     .setNegativeButton("No", null)
                     .show();
         }
+        else if(item.getItemId() == R.id.hold){
+            set(6);
+        }
 
         return true;
     }
@@ -236,6 +239,10 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
             builder.setTitle("Enter devicename");
             text.setHint(sp.getString("devicename","devicename"));
         }
+        else if (n == 6){
+            builder.setTitle("Enter threshold");
+            text.setHint(sp.getString("hold","-7"));
+        }
         builder.setPositiveButton("Okay", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -261,6 +268,8 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                         editor.putString("campaign",converted);
                     else if(n==5)
                         editor.putString("devicename",converted);
+                    else if (n == 6)
+                        editor.putString("hold",converted);
                     editor.commit();
 
                 }
@@ -404,6 +413,8 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                 @Override
                 public void onResponse(JSONObject response) {
                     JSONArray arrayResponse = null;
+                    String name = "";
+                    String uid = "";
                     try {
                         arrayResponse = response.getJSONArray("data");
                         for(int i = 0; i<arrayResponse.length();i++){
@@ -411,11 +422,9 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                                 JSONObject user = arrayResponse.getJSONObject(i);
 
                                 if(tagid.equals(user.getString("band_number"))){
-                                    SharedPreferences.Editor editor = sp.edit();
+                                    uid = user.getString("band_uid");
+                                    name = user.getString("name");
                                     Log.i(MainActivity.TAG,"uid = " + user.getString("band_uid") + "\n name =  "+ user.getString("name"));
-                                    editor.putString("band_uid",user.getString("band_uid"));
-                                    editor.putString("name",user.getString("name"));
-                                    editor.commit();
                                     break;
                                 }
                             } catch (JSONException e) {
@@ -423,9 +432,14 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                             }
 
                         }
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putString("band_uid",name    );
+                        editor.putString("name",name);
+                        editor.commit();
                     } catch (JSONException e) {
                         Log.e(MainActivity.TAG,e.getMessage());
                     }
+
 
                 }
             }, new Response.ErrorListener() {
