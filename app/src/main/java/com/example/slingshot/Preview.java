@@ -95,10 +95,6 @@ public class Preview extends AppCompatActivity {
                         dialog();
                     }
                     else{
-
-                        SharedPreferences.Editor editor = pref.edit();
-                        editor.putString("image",path);
-                        editor.commit();
                         startActivity(new Intent(Preview.this,Shot.class));
                         finish();
 
@@ -188,20 +184,20 @@ public class Preview extends AppCompatActivity {
     private void saveImage(final int i, final int j , final String ip){
 
         final Bitmap image = combinedImage;
+        final File pictureFile = getOutputMediaFile(i,j);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("image",pictureFile.getAbsolutePath());
+        editor.commit();
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-                final File[] pictureFile = new File[1];
-
-
-                pictureFile[0] = getOutputMediaFile(i,j);
 
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
                 byte[] byteArray = stream.toByteArray();
 
                 try {
-                    FileOutputStream fos = new FileOutputStream(pictureFile[0]);
+                    FileOutputStream fos = new FileOutputStream(pictureFile);
                     fos.write(byteArray);
                     Log.i(Welcome.TAG,"file saved");
                     fos.close();
@@ -214,8 +210,9 @@ public class Preview extends AppCompatActivity {
                 }
                 delImage(path);
                 MediaScannerConnection.scanFile(getApplicationContext(), new String[] { path }, new String[] { "image/jpeg" }, null);
-                MediaScannerConnection.scanFile(getApplicationContext(), new String[] { pictureFile[0].getPath() }, new String[] { "image/jpeg" }, null);
-                newPath = pictureFile[0].getPath();
+                MediaScannerConnection.scanFile(getApplicationContext(), new String[] { pictureFile.getPath() }, new String[] { "image/jpeg" }, null);
+                newPath = pictureFile.getPath();
+
                 new Uploader().sendImage(newPath,ip);
                 return null;
             }

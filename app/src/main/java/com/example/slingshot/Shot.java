@@ -37,7 +37,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float y,last_y=0;
     private float azimuth;
     private float pitch;
-    static final float ALPHA = 0.25f;
+    static final float ALPHA = 0.2f;
     private int SHAKE_THRESHOLD;
     private long lastUpdate = System.currentTimeMillis();
     private String name;
@@ -45,7 +45,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private String topic;
     private String tag;
     int i = 0;
-    int j[] = new int[10],k[] = new int[10];
+    int j[] = new int[50],k[] = new int[50];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,7 +197,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         if(n == 0)
              payload = topic + "^moving^"+ (int)  azimuth + "^" + (int)pitch;
         else if (n == 1){
-            payload = topic + "^moving^"+ j[9] + "^" + k[9] + "^" + name + "^"+ pledge + "^" + tag;
+            payload = topic + "^moving^"+ j[j.length-1] + "^" + k[k.length-1] + "^" + name + "^"+ pledge + "^" + tag;
             Log.i(MainActivity.TAG,payload);
         }
         else if(n == 2)

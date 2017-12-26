@@ -81,6 +81,14 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         //getActionBar().hide();
         capture = (FloatingActionButton) findViewById(R.id.capture);
         surfaceView = (SurfaceView) findViewById(R.id.cameraView);
+        final int cameraCount = Camera.getNumberOfCameras();
+        if(cameraCount == 1){
+            changeCamera.setVisibility(View.GONE);
+            changeCamera.setEnabled(false);
+            isfront = false;
+        }
+        else
+            isfront = true;
         surfaceHolder = surfaceView.getHolder();
 
         surfaceHolder.addCallback(this);
@@ -100,7 +108,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         catch (ArrayIndexOutOfBoundsException | NullPointerException e){
             Log.e(Welcome.TAG,e.getMessage());
         }
-        final int cameraCount = Camera.getNumberOfCameras();
 
         capture.setOnClickListener(new FloatingActionButton.OnClickListener() {
             @Override
@@ -280,6 +287,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         if(cameraCount == 1){
             changeCamera.setVisibility(View.GONE);
             changeCamera.setEnabled(false);
+            isfront = false;
         }
 
         changeCamera.setOnClickListener(new View.OnClickListener() {
@@ -386,7 +394,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     private void setCamera(final boolean isFront) {
         int cameraIndex = 0;
         if(isFront){
-            cameraIndex = openFrontFacingCamera();
+            cameraIndex = 1;
             Log.i(MainActivity.TAG,"Front facing");
         }
         try{
@@ -441,14 +449,14 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
 
 
-    private int openFrontFacingCamera()
-    {
-        int cameraCount = Camera.getNumberOfCameras();
-        if (cameraCount == 2)
-            return  1;
-        return 0;
-
-    }
+//    private int openFrontFacingCamera()
+//    {
+//        int cameraCount = Camera.getNumberOfCameras();
+//        if (cameraCount == 2)
+//            return  1;
+//        return 0;
+//
+//    }
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
 
@@ -657,6 +665,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     protected void onDestroy() {
         super.onDestroy();
         orientationEventListener.disable();
+        if(camera != null)
+            camera.release();
     }
 //   / private void setFrame(int frame){
 //        surfaceView.setForeground(getDrawable(frame));

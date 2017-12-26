@@ -108,28 +108,37 @@ public class Uploader2  {
                     } catch (IOException e1){
                         e1.printStackTrace();
                     }
-                    if (resultResponse.equalsIgnoreCase("SUCCESS")) {
-                        Log.i(Welcome.TAG, dirSuccess.getPath() + File.separator + file.getName());
-                        moveFile(dirSuccess.getPath() + File.separator + file.getName(), file);
-                        Log.i(Welcome.TAG, "Image uploaded...");
-                        Toast.makeText(mContext, "Image Uploaded", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Log.i(Welcome.TAG, dirFailed.getPath() + File.separator + file.getName());
-                        moveFile(dirFailed.getPath() + File.separator + file.getName(), file);
-                        Toast.makeText(mContext, "Failed" + resultResponse, Toast.LENGTH_LONG).show();
-                        Log.i(Welcome.TAG, "image upload failed..." + resultResponse);
-                    }
-                    if (dirWaiting.listFiles().length != 0) {
-                        File[] list = dirWaiting.listFiles();
-                        Log.w(Welcome.TAG,"next image");
-                        upload(list[0]);
+                    try{
+                        if (resultResponse.equalsIgnoreCase("SUCCESS")) {
+                            Log.i(Welcome.TAG, dirSuccess.getPath() + File.separator + file.getName());
+                            moveFile(dirSuccess.getPath() + File.separator + file.getName(), file);
+                            Log.i(Welcome.TAG, "Image uploaded...");
+                            Toast.makeText(mContext, "Image Uploaded", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Log.i(Welcome.TAG, dirFailed.getPath() + File.separator + file.getName());
+                            moveFile(dirFailed.getPath() + File.separator + file.getName(), file);
+                            Toast.makeText(mContext, "Failed" + resultResponse, Toast.LENGTH_LONG).show();
+                            Log.i(Welcome.TAG, "image upload failed..." + resultResponse);
+                        }
+                        if (dirWaiting.listFiles().length != 0) {
+                            File[] list = dirWaiting.listFiles();
+                            Log.w(Welcome.TAG,"next image");
+                            upload(list[0]);
+                        }
+                    }catch (Exception e){
+                        Log.e(Welcome.TAG,e.getMessage());
                     }
                 }
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    Log.e(Welcome.TAG,t.getMessage());
-                    Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
+                    try {
+                        Log.e(Welcome.TAG,t.getMessage());
+                        Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
+                  }catch (Exception e){
+                      Log.e(Welcome.TAG,e.getMessage());
+                      Toast.makeText(mContext,"Image upload failed please try again",Toast.LENGTH_LONG).show();
+                  }
                 }
             });
 

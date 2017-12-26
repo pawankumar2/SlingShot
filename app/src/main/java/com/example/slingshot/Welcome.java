@@ -433,7 +433,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 
                         }
                         SharedPreferences.Editor editor = sp.edit();
-                        editor.putString("band_uid",name    );
+                        editor.putString("band_uid",uid);
                         editor.putString("name",name);
                         editor.commit();
                     } catch (JSONException e) {
