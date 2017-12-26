@@ -30,6 +30,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -406,7 +407,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         if(campaign == null)
             Toast.makeText(getApplicationContext(),"Enter campaign ",Toast.LENGTH_LONG).show();
         else{
-
+            showProgress(true);
             final String url = "http://socialact.in/api/social-users/"+campaign ;
             RequestQueue queue = Volley.newRequestQueue(this);
             JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
@@ -436,7 +437,9 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                         editor.putString("band_uid",uid);
                         editor.putString("name",name);
                         editor.commit();
+                        showProgress(false);
                     } catch (JSONException e) {
+                        showProgress(false);
                         Log.e(MainActivity.TAG,e.getMessage());
                     }
 
@@ -446,8 +449,12 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Log.i(MainActivity.TAG,error.toString());
+                    showProgress(false);    
                 }
             });
+            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(10000,
+                    5,
+                    2));
             queue.add(jsonObjectRequest);
 
         }
