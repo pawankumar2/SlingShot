@@ -1,4 +1,4 @@
-package com.example.slingshot;
+package com.example.picshot;
 
 /**
  * Created by lenovo-05 on 14-11-2017.
@@ -9,7 +9,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 

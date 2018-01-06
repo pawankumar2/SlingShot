@@ -34,4 +34,10 @@ dependencies {
     compile 'com.squareup.okhttp3:logging-interceptor:3.0.1'
     compile 'com.android.volley:volley:1.0.0'
     testCompile 'junit:junit:4.12'
+    compile 'com.google.firebase:firebase-config:11.0.0'
+    compile 'com.google.firebase:firebase-crash:11.0.0'
+
 }
+
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.firebase-crash'

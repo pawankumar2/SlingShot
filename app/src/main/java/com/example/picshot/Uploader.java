@@ -1,8 +1,6 @@
-package com.example.slingshot;
+package com.example.picshot;
 
-import android.content.Intent;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;

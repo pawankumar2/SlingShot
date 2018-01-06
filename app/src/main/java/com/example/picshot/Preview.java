@@ -1,4 +1,4 @@
-package com.example.slingshot;
+package com.example.picshot;
 
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -11,16 +11,12 @@ import android.graphics.Canvas;
 import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.os.Handler;
 import android.support.v4.print.PrintHelper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -34,8 +30,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import static com.example.slingshot.R.id.imageView;
 
 public class Preview extends AppCompatActivity {
 
@@ -77,7 +71,7 @@ public class Preview extends AppCompatActivity {
         moveForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               String ip = pref.getString("uip",null);
+               String ip = pref.getString("ip",null);
                 int i = 0;
                 int j =0;
 
@@ -91,14 +85,14 @@ public class Preview extends AppCompatActivity {
                         print();
                     }
                     saveImage(i,j,ip);
-                    if(pref.getString("name",null) == ""){
-                        dialog();
-                    }
-                    else{
+                  //  if(pref.getString("name",null) == ""){
+                    //    dialog();
+                    //}
+                   // else{
                         startActivity(new Intent(Preview.this,Shot.class));
                         finish();
 
-                    }
+                   // }
 
                 }
                 else
@@ -230,13 +224,10 @@ public class Preview extends AppCompatActivity {
         Long timeStamp = System.currentTimeMillis();
         Log.i(Welcome.TAG, String.valueOf(timeStamp));
         String uid = pref.getString("band_uid","null");
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("uid",null);
-        editor.commit();
         Log.i(Welcome.TAG,uid);
         File mediaFile;
         mediaFile = new File(dirWaiting.getPath() + File.separator + uid
-                + "__"+ i + "__" + j+ "__"+ timeStamp + ".jpeg");
+                + "___"+ i + "___" + j+ "___"+ timeStamp + ".jpeg");
         Log.i(Welcome.TAG,"Got file");
         Log.i(Welcome.TAG,mediaFile.getParent() + " - " + mediaFile.getName() + " - " + mediaFile.getPath());
 

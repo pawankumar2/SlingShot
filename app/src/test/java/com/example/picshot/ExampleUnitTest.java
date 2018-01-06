@@ -1,4 +1,4 @@
-package com.example.slingshot;
+package com.example.picshot;
 
 import org.junit.Test;
 

@@ -6,17 +6,15 @@
     <item
         android:id="@+id/clear"
         android:title="Clear Screen"/>
-    <item
-        android:id="@+id/mip"
-        android:title="MqttIP"/>
-    <item android:title="UploadIp"
-        android:id="@+id/uip"></item>
+
+    <item android:title="Ip"
+        android:id="@+id/ip"></item>
     <item
         android:id="@+id/topic"
         android:title="Topic"/>
-    <item
-        android:id="@+id/campaign"
-        android:title="Campaign"/>
+    <!--<item-->
+        <!--android:id="@+id/campaign"-->
+        <!--android:title="Campaign"/>-->
     <item
         android:id="@+id/devicename"
         android:title="Device"/>
@@ -29,6 +27,11 @@
     <item
         android:id="@+id/hold"
         android:title="Add threshold"/>
+    <group android:checkableBehavior="all">
+        <item
+            android:id="@+id/lock"
+            android:title="Lock"/>
+    </group>
     <!--<item-->
         <!--android:id="@+id/shut"-->
         <!--android:title="ShutDown"/>-->

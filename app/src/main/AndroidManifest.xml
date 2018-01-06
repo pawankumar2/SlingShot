@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.slingshot">
+    package="com.example.picshot">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -21,16 +21,16 @@
     <application
         android:allowBackup="true"
         android:hardwareAccelerated="false"
-        android:largeHeap="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service android:name="org.eclipse.paho.android.service.MqttService" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.picshot.MainActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,18 +39,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CameraActivity"
+            android:name="com.example.picshot.CameraActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".Signature"
+            android:name="com.example.picshot.Signature"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".Preview" />
+        <activity android:name="com.example.picshot.Preview" />
         <activity
-            android:name=".Shot"
+            android:name="com.example.picshot.Shot"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
-        <activity android:name=".Welcome" />
-        <activity android:name=".Data"></activity>
+        <activity android:name="com.example.picshot.Welcome" />
+        <activity android:name="com.example.picshot.Data" />
+        <activity android:name="com.example.picshot.shot2"
+            android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
     </application>
 
 </manifest>

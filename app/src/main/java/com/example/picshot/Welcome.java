@@ -1,4 +1,4 @@
-package com.example.slingshot;
+package com.example.picshot;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -12,7 +12,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -54,8 +53,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.util.zip.Inflater;
 
 public class Welcome extends AppCompatActivity implements SensorEventListener{
     private MqttAndroidClient client;
@@ -130,14 +127,10 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         else if(item.getItemId() == R.id.topic){
             set(3);
         }
-        else if(item.getItemId() == R.id.mip){
-            set(1);
-
-        }
-        else if (item.getItemId() == R.id.uip)
+        else if (item.getItemId() == R.id.ip)
             set(0);
-        else if (item.getItemId() == R.id.campaign)
-            set(4);
+//        else if (item.getItemId() == R.id.campaign)
+//            set(4);
         else if (item.getItemId() == R.id.devicename)
             set(5);
 //        else if(item.getItemId() == R.id.shut){
@@ -185,8 +178,38 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         else if(item.getItemId() == R.id.hold){
             set(6);
         }
+        else if (item.getItemId()==R.id.lock){
+            boolean lock;
+            if(!item.isChecked()){
+                lock = true;
+                item.setChecked(true);
+            }
+            else{
+                lock = false;
+                item.setChecked(false);
+            }
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putBoolean("lock",lock);
+            editor.commit();
+        }
 
         return true;
+    }
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        updateMenu(menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+
+
+    private void updateMenu(Menu menu) {
+        MenuItem lock = menu.findItem(R.id.lock);
+        Log.d(TAG,"lock is " + sp.getBoolean("lock",false));
+        if(sp.getBoolean("lock",false))
+            lock.setChecked(true);
+        else
+            lock.setChecked(false);
     }
     public void send (int i){
         String topic = sp.getString("topic",null);
@@ -217,12 +240,8 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         builder.setView(layout);
 
         if(n ==0) {
-            builder.setTitle("Enter Uploadip");
-            text.setHint(sp.getString("uip","UploadIP"));
-        }
-        else if(n==1) {
-            builder.setTitle("Enter Mqttip");
-            text.setHint(sp.getString("mip","ip"));
+            builder.setTitle("Enter IP");
+            text.setHint(sp.getString("ip","IP"));
         }
         else if(n == 2){
             builder.setTitle("Enter your TagID");
@@ -254,12 +273,11 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                     Log.i(MainActivity.TAG,"\nname = " + text);
                     SharedPreferences.Editor editor = sp.edit();
                     if(n==0)
-                        editor.putString("uip",converted);
-                    else if(n==1)
-                        editor.putString("mip", converted);
+                        editor.putString("mip",converted);
+
                     else if (n==2) {
-                        //editor.putString("tag", converted);
-                        getUid(converted);
+                        editor.putString("tag", converted.replace(" ", ""));
+                        //getUid(converted);
                         startActivity(new Intent(Welcome.this, CameraActivity.class));
                     }
                     else if(n==3){
@@ -347,10 +365,11 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     @Override
     protected void onResume() {
         super.onResume();
-        String mip = sp.getString("mip",null);
-        if(mip != null){
+        invalidateOptionsMenu();
+        String ip = sp.getString("mip",null);
+        if(ip != null){
             String clientId = MqttClient.generateClientId();
-            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+mip+":1883",
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+ip+":1883",
                     clientId);
             try {
                 IMqttToken token = client.connect();
@@ -449,7 +468,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Log.i(MainActivity.TAG,error.toString());
-                    showProgress(false);    
+                    showProgress(false);
                 }
             });
             jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(10000,

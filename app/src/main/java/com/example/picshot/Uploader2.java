@@ -1,11 +1,10 @@
-package com.example.slingshot;
+package com.example.picshot;
 
 /**
  * Created by lenovo-05 on 14-11-2017.
  */
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.util.Log;
@@ -146,19 +145,19 @@ public class Uploader2  {
     }
 
     private String getTimestamp(String name){
-        return name.split("__")[3];
+        return name.split("___")[3];
     }
 
     private String getEmail(String name) {
-        return name.split("__")[2];
+        return name.split("___")[2];
     }
 
     private String getSocial(String name) {
-        return name.split("__")[1];
+        return name.split("___")[1];
     }
 
     private String getUid(String name) {
-        return name.split("__")[0];
+        return name.split("___")[0];
     }
     private void moveFile(String dir,File file){
         File to = new File(dir);

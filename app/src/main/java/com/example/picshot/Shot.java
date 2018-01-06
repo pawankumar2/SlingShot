@@ -1,4 +1,4 @@
-package com.example.slingshot;
+package com.example.picshot;
 
 
 import android.content.Intent;
@@ -10,7 +10,10 @@ import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
+
 
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -34,24 +37,24 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float mags[] = new float[3];
     private float[] values = new float[3];
     // azimuth, pitch and roll
-    private float y,last_y=0;
+    private float y;
     private float azimuth;
     private float pitch;
     static final float ALPHA = 0.2f;
-    private int SHAKE_THRESHOLD;
-    private long lastUpdate = System.currentTimeMillis();
+    private int SHAKE_THRESHOLD ;
     private String name;
     private String pledge;
     private String topic;
     private String tag;
     int i = 0;
     int j[] = new int[50],k[] = new int[50];
+    SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shot);
-        SharedPreferences sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
+        sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
         name = sp.getString("name","Unknown");
         pledge = sp.getString("image","Unknown");
         String path[] = pledge.split("/");
@@ -61,7 +64,20 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         tag = sp.getString("band_uid",null);
         String ip = sp.getString("mip",null);
         SHAKE_THRESHOLD = Integer.parseInt(sp.getString("hold","-7"));
-        Log.i(MainActivity.TAG,"name: " + name + "\npledge: " + pledge + "\nhold: " + SHAKE_THRESHOLD);
+        TextView shot = findViewById(R.id.textView);
+        if(sp.getBoolean("lock",false)){
+            shot.setText("Tap here to lock the position");
+            //todo: save values
+            shot.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    calc(3);
+                    startActivity(new Intent(Shot.this,shot2.class));
+                }
+            });
+
+        }
+        Log.i(Welcome.TAG,"name: " + name + "\npledge: " + pledge + "\nhold: " + SHAKE_THRESHOLD);
         if(ip == null){
             Toast.makeText(getApplicationContext(),"set mqtt ip in the menu",Toast.LENGTH_LONG).show();
             startActivity(new Intent(Shot.this,Welcome.class));
@@ -76,7 +92,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                     @Override
                     public void onSuccess(IMqttToken asyncActionToken) {
                         // We are connected
-                        Log.d(MainActivity.TAG, "onSuccess");
+                        Log.d(Welcome.TAG, "onSuccess");
                         Toast.makeText(getApplicationContext(),"success",Toast.LENGTH_LONG).show();
 
                     }
@@ -85,14 +101,14 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                     public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
                         // Something went wrong e.g. connection timeout or firewall problems
                         Toast.makeText(getApplicationContext(),"failed",Toast.LENGTH_LONG).show();
-                        Log.e(MainActivity.TAG, "onFailure");
-                        Log.e(MainActivity.TAG, exception.getMessage());
+                        Log.e(Welcome.TAG, "onFailure");
+                        Log.e(Welcome.TAG, exception.getMessage());
 
 
                     }
                 });
             } catch (MqttException | NullPointerException e) {
-                Log.e(MainActivity.TAG,"mqtt" + e.getMessage());
+                Log.e(Welcome.TAG,"mqtt" + e.getMessage());
             }
 
         }
@@ -100,9 +116,9 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     }
     @Override
     protected void onDestroy() {
-                calc(2);
-                disconnect();
-                super.onDestroy();
+        calc(2);
+        //disconnect();
+        super.onDestroy();
     }
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -111,40 +127,41 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
             case Sensor.TYPE_MAGNETIC_FIELD:
                 mags = lowPass(event.values.clone(), mags);
 
-            break;
+                break;
             case Sensor.TYPE_ACCELEROMETER:
                 accels = lowPass(event.values.clone(),accels);
+
+
+
+                break;
 
             case Sensor.TYPE_LINEAR_ACCELERATION :
 
                 y = event.values[1];
                 Log.w(Welcome.TAG," " + y);
 
-                if (/*speed > SHAKE_THRESHOLD && speed < 5000*/ y <SHAKE_THRESHOLD && mags != null && accels != null ){//&& fallbackk >75 ) {
+                if (y <SHAKE_THRESHOLD && mags != null && accels != null ){//&& fallbackk >75 ) {
                     mSensorManager.unregisterListener(this);
-                    Log.i(MainActivity.TAG,""+fallbackk);
-                    Log.w(MainActivity.TAG,"shaked");
-                    Log.i(MainActivity.TAG,"speed= " + y);
+                    Log.w(Welcome.TAG,"shaked");
+                    Log.i(Welcome.TAG,"speed= " + y);
                     calc(1);
                     startActivity(new Intent(Shot.this,Welcome.class));
-                    last_y = 0;
                     calc(2);
                     // disconnect();
                     finish();
                 }
-                last_y = y;
-                break;
         }
 
+
         if (mags != null && accels != null) {
-           // if(i > 3 ){
-                calc(0);
+            //if(i > 3 ){
+            calc(0);
 //                i =0;
 //            }
 //            i++;
-           // Log.i(MainActivity.TAG," "+ i);
+            // Log.i(MainActivity.TAG," "+ i);
 
-       }
+        }
 
     }
 
@@ -160,7 +177,8 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         super.onResume();
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        if(!sp.getBoolean("lock",false))
+            mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
     }
 
     @Override
@@ -195,13 +213,22 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
         swap();
         String payload = null ;
         if(n == 0)
-             payload = topic + "^moving^"+ (int)  azimuth + "^" + (int)pitch;
+            payload = topic + "^moving^"+ (int)  azimuth + "^" + (int)pitch;
         else if (n == 1){
             payload = topic + "^moving^"+ j[j.length-1] + "^" + k[k.length-1] + "^" + name + "^"+ pledge + "^" + tag;
-            Log.i(MainActivity.TAG,payload);
+            Log.i(Welcome.TAG,payload);
         }
         else if(n == 2)
             payload = topic + "^hide^";
+        else if (n==3) {
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("payload",topic + "^moving^"+ (int)azimuth + "^" +(int)pitch + "^" + name + "^"+ pledge + "^" + tag);
+            editor.commit();
+        }
+        send(payload);
+    }
+
+    private void send(String payload) {
         byte[] encodedPayload = new byte[0];
         try {
             encodedPayload = payload.getBytes("UTF-8");
@@ -210,13 +237,15 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                 client.publish("Sling", message);
             else
                 Toast.makeText(getApplicationContext(),"please add topic first",Toast.LENGTH_LONG).show();
-           // Log.i(MainActivity.TAG,"Failed to publish");
+            // Log.i(MainActivity.TAG,"Failed to publish");
         } catch (UnsupportedEncodingException | MqttException | NullPointerException | IllegalArgumentException e) {
-            Log.e(MainActivity.TAG,e.getMessage());
-           // Log.i(MainActivity.TAG,"Failed to publish");
+            Log.e(Welcome.TAG,"error while sending " + e.getMessage());
+            //Toast.makeText(getApplicationContext(),"some error occurred please try again",Toast.LENGTH_LONG).show();
+            // Log.i(MainActivity.TAG,"Failed to publish");
         }
 
     }
+
     public void disconnect(){
         try {
             IMqttToken disconToken = client.disconnect();
@@ -233,7 +262,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                 }
             });
         } catch (MqttException  | NullPointerException e) {
-            Log.e(MainActivity.TAG,e.getMessage());
+            Log.e(Welcome.TAG,"while disconnect: " + e.getMessage());
         }
     }
     private void swap(){
@@ -246,7 +275,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
                     int temp = j[i];
                     j[i] = j[i+1];
                     j[i+1] = temp;
-                     temp = k[i];
+                    temp = k[i];
                     k[i] = k[i+1];
                     k[i+1] = temp;
                 }

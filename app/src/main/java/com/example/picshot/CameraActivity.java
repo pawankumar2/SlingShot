@@ -1,4 +1,4 @@
-package com.example.slingshot;
+package com.example.picshot;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -493,7 +493,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     public Camera.Size getMaxSize(){
         List<Camera.Size> sizes = params.getSupportedPictureSizes();
-        Camera.Size size = sizes.get(10);
+        Camera.Size size = sizes.get(8);
 //        for (int i = 0; i < sizes.size(); i++) {
 //            if (sizes.get(i).width > size.width)
 //                size = sizes.get(i);

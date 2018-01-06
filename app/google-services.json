@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1086616363514",
+    "firebase_url": "https://picshot-64caa.firebaseio.com",
+    "project_id": "picshot-64caa",
+    "storage_bucket": "picshot-64caa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1086616363514:android:636c43c2dd9c2ba0",
+        "android_client_info": {
+          "package_name": "com.example.slingshot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1086616363514-9it4n0u9oku6k4t9q82kim8nn6u02gm1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYCOv7V91N1cG2v3Zik1x4MwWlPchvVAE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

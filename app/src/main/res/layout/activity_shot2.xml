@@ -4,11 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.picshot.Shot"
+    tools:context="com.example.picshot.shot2"
     android:background="#000">
-
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -17,4 +16,5 @@
         android:textSize="50sp"
         android:textAlignment="center"
         android:textColor="#fff"/>
+
 </RelativeLayout>
