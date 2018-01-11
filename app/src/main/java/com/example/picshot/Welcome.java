@@ -80,7 +80,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         new Permissions(getApplicationContext(),Welcome.this).takePhoto();
         Button start = (Button) findViewById(R.id.start);
         sp = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
+
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(SENSOR_SERVICE);
         ContextWrapper cWrapper = new ContextWrapper(this);
         appDataLocation = cWrapper.getFilesDir().getAbsolutePath();
@@ -89,7 +89,10 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         mWelcomeFormView = findViewById(R.id.welcome_form);
         frames = new File(appDataLocation + "/Frames");
         frames.mkdir();
-
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("band_uid",null);
+        editor.putString("name",null);
+        editor.commit();
         portrait0 = new File(appDataLocation + "/Frames/portrait0");
         portrait0.mkdir();
         start.setOnClickListener(new View.OnClickListener() {
@@ -241,7 +244,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 
         if(n ==0) {
             builder.setTitle("Enter IP");
-            text.setHint(sp.getString("ip","IP"));
+            text.setHint(sp.getString("mip","IP"));
         }
         else if(n == 2){
             builder.setTitle("Enter your TagID");
@@ -272,11 +275,12 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                 if(converted.length() != 0){
                     Log.i(MainActivity.TAG,"\nname = " + text);
                     SharedPreferences.Editor editor = sp.edit();
-                    if(n==0)
-                        editor.putString("mip",converted);
-
+                    if(n==0) {
+                        editor.putString("mip", converted);
+                        connect(converted);
+                    }
                     else if (n==2) {
-                        editor.putString("tag", converted.replace(" ", ""));
+                        editor.putString("tag", converted);
                         //getUid(converted);
                         startActivity(new Intent(Welcome.this, CameraActivity.class));
                     }
@@ -367,9 +371,15 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         super.onResume();
         invalidateOptionsMenu();
         String ip = sp.getString("mip",null);
-        if(ip != null){
+        connect(ip);
+        mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+        new Uploader2(getApplicationContext(),sp.getString("devicename",null));
+    }
+    public void connect(String mip){
+        if(mip != null){
             String clientId = MqttClient.generateClientId();
-            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+ip+":1883",
+            client = new MqttAndroidClient(this.getApplicationContext(), "tcp://"+mip+":1883",
                     clientId);
             try {
                 IMqttToken token = client.connect();
@@ -396,9 +406,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         }
         else
             Toast.makeText(getApplicationContext(),"set mqtt ip",Toast.LENGTH_LONG).show();
-        mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-        new Uploader2(getApplicationContext(),sp.getString("devicename",null));
+
     }
     public void disconnect(){
         try {

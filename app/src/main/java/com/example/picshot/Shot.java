@@ -40,7 +40,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float y;
     private float azimuth;
     private float pitch;
-    static final float ALPHA = 0.2f;
+    static final float ALPHA = 0.6f;
     private int SHAKE_THRESHOLD ;
     private String name;
     private String pledge;

@@ -49,6 +49,10 @@ public class Preview extends AppCompatActivity {
     private int applyFrame;
     private  File dirWaiting;
     private String newPath;
+    private CheckBox fb;
+    private CheckBox email;
+    private CheckBox print;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,44 +63,36 @@ public class Preview extends AppCompatActivity {
         ContextWrapper cWrapper = new ContextWrapper(this);
         portrait = new File(cWrapper.getFilesDir().getAbsolutePath() + "/Frames/portrait0").listFiles();
         preview = (ImageView) findViewById(R.id.preview);
-        final CheckBox fb = (CheckBox) findViewById(R.id.share);
+        fb = (CheckBox) findViewById(R.id.share);
         moveForward = (Button) findViewById(R.id.moveForward);
         retake = (Button) findViewById(R.id.retake);
         pref = getApplicationContext().getSharedPreferences("data", Context.MODE_PRIVATE);
-        final CheckBox print = (CheckBox) findViewById(R.id.print);
+        print = (CheckBox) findViewById(R.id.print);
         dirWaiting = new File( Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picshot/Waiting/");
         dirWaiting.mkdir();
-        final CheckBox email = (CheckBox)findViewById(R.id.email);
+        email = (CheckBox)findViewById(R.id.email);
         moveForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               String ip = pref.getString("ip",null);
-                int i = 0;
-                int j =0;
-
+               String ip = pref.getString("mip",null);
+                int m=0,n=0;
                 if(fb.isChecked() || email.isChecked() || print.isChecked()){
                     if(fb.isChecked())
-                        i = 1;
+                        m = 1;
                     if(email.isChecked())
-                        j=1;
+                        n=1;
                     if (print.isChecked()){
                         Toast.makeText(getApplicationContext(),"printing...", Toast.LENGTH_LONG).show();
                         print();
                     }
-                    saveImage(i,j,ip);
-                  //  if(pref.getString("name",null) == ""){
-                    //    dialog();
-                    //}
-                   // else{
-                        startActivity(new Intent(Preview.this,Shot.class));
-                        finish();
 
-                   // }
-
+                    dialog(m,n,ip);
                 }
                 else
                     Toast.makeText(getApplicationContext(),"Please select an option from above",Toast.LENGTH_LONG).show();
+
+
             }
         });
         retake.setOnClickListener(new View.OnClickListener() {
@@ -112,7 +108,7 @@ public class Preview extends AppCompatActivity {
 
 
 
-    private void dialog() {
+    private void dialog(final int m, final int n, final String ip) {
         inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         layout = inflater.inflate(R.layout.namedialog,
                 (ViewGroup) findViewById(R.id.nameLayout));
@@ -131,8 +127,9 @@ public class Preview extends AppCompatActivity {
                     editor.putString("name",fullName);
                     editor.putString("image",newPath);
                     editor.commit();
-                        startActivity(new Intent(Preview.this,Shot.class));
-                        finish();
+                    saveImage(m,n,ip);
+                    startActivity(new Intent(Preview.this,Shot.class));
+                    finish();
 
                 }
 
