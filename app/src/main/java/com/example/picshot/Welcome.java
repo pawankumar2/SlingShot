@@ -8,6 +8,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -70,6 +72,8 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     private String appDataLocation;
     private File frames;
     private final static int SELECT_PORTRAIT = 3;
+    private static final int SELECT_BACKGROUND = 4;
+    File background;
     View mProgressView;
     View mWelcomeFormView;
 
@@ -89,6 +93,8 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         mWelcomeFormView = findViewById(R.id.welcome_form);
         frames = new File(appDataLocation + "/Frames");
         frames.mkdir();
+        background = new File(appDataLocation + "/Frames/background");
+        background.mkdir();
         SharedPreferences.Editor editor = sp.edit();
         editor.putString("band_uid",null);
         editor.putString("name",null);
@@ -154,21 +160,23 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 //            builder.create().show();
 //        }
         else if(item.getItemId() == R.id.portrait){
-            Intent intent = new Intent();
-            intent.setType("image/png");
-            intent.setAction(Intent.ACTION_GET_CONTENT);
-            startActivityForResult(Intent.createChooser(intent, "Select File"),SELECT_PORTRAIT);
+            selectImage(SELECT_PORTRAIT);
+        }
+        else if(item.getItemId() == R.id.background){
+            selectImage(SELECT_BACKGROUND);
         }
             else if(item.getItemId() == R.id.delete) {
             AlertDialog.Builder delete = new AlertDialog.Builder(Welcome.this);
-            delete.setMessage("Are you sure you want to delete all the frames?")
-                    .setTitle("Delete Frames")
+            delete.setMessage("Are you sure you want to delete all the images?")
+                    .setTitle("Delete")
                     .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int j) {
 
                             if (portrait0.listFiles().length != 0)
                                 portrait0.listFiles()[0].delete();
+                            if(background.listFiles().length != 0)
+                                background.listFiles()[0].delete();
 
                             Toast.makeText(getApplicationContext(), portrait0.listFiles().length + " frames remaining", Toast.LENGTH_LONG).show();
 
@@ -197,6 +205,17 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         }
 
         return true;
+    }
+    public void setBackground(){
+        if(background.listFiles().length != 0) {
+            findViewById(R.id.welcome).setBackground(new BitmapDrawable(getResources(), BitmapFactory.decodeFile(background.listFiles()[0].getPath())));
+        }
+    }
+    public void selectImage(int imageType){
+        Intent intent = new Intent();
+        intent.setType("image/png");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select File"),imageType);
     }
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -375,6 +394,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
         new Uploader2(getApplicationContext(),sp.getString("devicename",null));
+        setBackground();
     }
     public void connect(String mip){
         if(mip != null){
@@ -486,41 +506,16 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 
         }
     }
-    private void onSelectFromGalleryResult(Intent data,int requestCode) {
-        Log.i(TAG, " " + requestCode);
-        Bitmap bm = null;
-        if (data != null) {
-            try {
-                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (requestCode == SELECT_PORTRAIT)
-            addFrame(bm, portrait0);
-//        else {
-//            Matrix matrix1 = new Matrix();
-//            matrix1.postRotate(90);
-//            Bitmap rotateLand1 = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix1, true);
-//            Matrix matrix2 = new Matrix();
-//            matrix2.postRotate(270);
-//            Bitmap rotateLand2 = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix2, true);
-//            addFrame(rotateLand1, land1);
-//            addFrame(rotateLand2, land2);
-    //}
-
-
-    }
     public void onActivityResult(final int requestCode, int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == SELECT_PORTRAIT){
+        if(requestCode == SELECT_PORTRAIT || requestCode == SELECT_BACKGROUND){
             if (resultCode == RESULT_OK) {
                 showProgress(true);
                 new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... voids) {
                         onSelectFromGalleryResult(data,requestCode);
-                        Log.i(TAG,"got result for portrait");
+                        Log.i(TAG,"got result for image");
                         return null;
                     }
 
@@ -528,6 +523,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                     protected void onPostExecute(Void aVoid) {
                         super.onPostExecute(aVoid);
                         Toast.makeText(getApplicationContext(),"Frame was added",Toast.LENGTH_SHORT).show();
+                        setBackground();
                         showProgress(false);
                     }
                 }.execute();
@@ -576,6 +572,33 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
 //            }
 //        }
         }
+    private void onSelectFromGalleryResult(Intent data,int requestCode) {
+        Log.i(TAG, " " + requestCode);
+        Bitmap bm = null;
+        if (data != null) {
+            try {
+                bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (requestCode == SELECT_PORTRAIT)
+            addFrame(bm, portrait0);
+        else if (requestCode == SELECT_BACKGROUND)
+            addFrame(bm,background);
+//        else {
+//            Matrix matrix1 = new Matrix();
+//            matrix1.postRotate(90);
+//            Bitmap rotateLand1 = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix1, true);
+//            Matrix matrix2 = new Matrix();
+//            matrix2.postRotate(270);
+//            Bitmap rotateLand2 = Bitmap.createBitmap(bm, 0, 0, bm.getWidth(), bm.getHeight(), matrix2, true);
+//            addFrame(rotateLand1, land1);
+//            addFrame(rotateLand2, land2);
+        //}
+
+
+    }
     //}
 
 

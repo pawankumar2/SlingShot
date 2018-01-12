@@ -50,7 +50,8 @@
             android:name="com.example.picshot.Shot"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity android:name="com.example.picshot.Welcome" />
-        <activity android:name="com.example.picshot.Data" />
+        <activity android:name="com.example.picshot.Data"
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
         <activity android:name="com.example.picshot.shot2"
             android:theme="@style/Theme.AppCompat.NoActionBar"></activity>
     </application>

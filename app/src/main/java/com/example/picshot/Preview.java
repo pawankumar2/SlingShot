@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -52,6 +53,7 @@ public class Preview extends AppCompatActivity {
     private CheckBox fb;
     private CheckBox email;
     private CheckBox print;
+    private File [] background;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,7 @@ public class Preview extends AppCompatActivity {
         dirWaiting = new File( Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "picshot/Waiting/");
         dirWaiting.mkdir();
+        background = new File(cWrapper.getFilesDir().getAbsolutePath() + "/Frames/background").listFiles();
         email = (CheckBox)findViewById(R.id.email);
         moveForward.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,7 +107,17 @@ public class Preview extends AppCompatActivity {
             }
         });
         addImage();
+        setBackground();
+
+
     }
+    public void setBackground(){
+        if(background.length != 0) {
+            findViewById(R.id.previewActivity).setBackground(new BitmapDrawable(getResources(), BitmapFactory.decodeFile(background[0].getPath())));
+        }
+
+    }
+
 
 
 
