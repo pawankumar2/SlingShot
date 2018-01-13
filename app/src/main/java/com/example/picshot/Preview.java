@@ -12,7 +12,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaScannerConnection;
 import android.os.AsyncTask;
 import android.os.Environment;
-import android.support.v4.print.PrintHelper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -85,10 +84,6 @@ public class Preview extends AppCompatActivity {
                         m = 1;
                     if(email.isChecked())
                         n=1;
-                    if (print.isChecked()){
-                        Toast.makeText(getApplicationContext(),"printing...", Toast.LENGTH_LONG).show();
-                        print();
-                    }
 
                     dialog(m,n,ip);
                 }
@@ -137,11 +132,20 @@ public class Preview extends AppCompatActivity {
                 if(fullName.length() != 0){
                     Log.i(MainActivity.TAG,"\nname = " + fullName);
                     SharedPreferences.Editor editor = pref.edit();
+
                     editor.putString("name",fullName);
+
+                    saveImage(m,n,ip);
+                    Intent intent = new Intent(Preview.this,Welcome.class);
+                    if(print.isChecked())
+                        //Toast.makeText(getApplicationContext(),"printing...",Toast.LENGTH_SHORT).show();
+                        // print();
+                        editor.putBoolean("print",true);
+                    else
+                        editor.putBoolean("print",false);
                     editor.putString("image",newPath);
                     editor.commit();
-                    saveImage(m,n,ip);
-                    startActivity(new Intent(Preview.this,Shot.class));
+                    startActivity(intent);
                     finish();
 
                 }
@@ -245,11 +249,7 @@ public class Preview extends AppCompatActivity {
     }
 
 
-    public void print(){
-        PrintHelper photoPrinter = new PrintHelper(Preview.this );
-        photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FIT);
-        photoPrinter.printBitmap("image", combinedImage);
-    }
+
 
     private boolean delImage(String path){
         File file = new File(path);

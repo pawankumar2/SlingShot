@@ -17,6 +17,7 @@ import android.hardware.SensorManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.support.v4.print.PrintHelper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -76,6 +77,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     File background;
     View mProgressView;
     View mWelcomeFormView;
+    private Bitmap image = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +111,13 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         });
     }
 
+    public void print(){
+        if(image != null){
+            PrintHelper photoPrinter = new PrintHelper(Welcome.this);
+            photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FIT);
+            photoPrinter.printBitmap("image", image);
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflaterMenu = getMenuInflater();
@@ -393,6 +402,16 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         connect(ip);
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+
+        Boolean print = sp.getBoolean("print",false);
+        Log.i(Welcome.TAG,"from welcome activity value of print is "+print);
+        String path = sp.getString("image",null);
+        if(path != null)
+            image = BitmapFactory.decodeFile(path);
+        else
+            Log.i(TAG,"print path is null");
+        if(print)
+            print();
         new Uploader2(getApplicationContext(),sp.getString("devicename",null));
         setBackground();
     }
