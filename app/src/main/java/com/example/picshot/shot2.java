@@ -34,6 +34,7 @@ public class shot2 extends AppCompatActivity implements SensorEventListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shot2);
+        new Fullscreen(findViewById(R.id.shot2)).hideSystemUI();
         sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
         String ip = sp.getString("mip",null);
         payload = sp.getString("payload",null);

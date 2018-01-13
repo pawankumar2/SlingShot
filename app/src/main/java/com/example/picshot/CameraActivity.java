@@ -82,6 +82,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         capture = (FloatingActionButton) findViewById(R.id.capture);
         surfaceView = (SurfaceView) findViewById(R.id.cameraView);
         final int cameraCount = Camera.getNumberOfCameras();
+        new Fullscreen(findViewById(R.id.cameraLayout)).hideSystemUI();
         if(cameraCount == 1){
             changeCamera.setVisibility(View.GONE);
             changeCamera.setEnabled(false);

@@ -15,6 +15,7 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Handler handler = new Handler();
+        new Fullscreen(findViewById(R.id.mainLayout)).hideSystemUI();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {

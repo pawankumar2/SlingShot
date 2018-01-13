@@ -103,7 +103,7 @@ public class Preview extends AppCompatActivity {
         });
         addImage();
         setBackground();
-
+        new Fullscreen(findViewById(R.id.previewActivity)).hideSystemUI();
 
     }
     public void setBackground(){

@@ -84,6 +84,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         new Permissions(getApplicationContext(),Welcome.this).takePhoto();
+        new Fullscreen(findViewById(R.id.welcome)).hideSystemUI();
         Button start = (Button) findViewById(R.id.start);
         sp = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
 

@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     tools:context="com.example.picshot.MainActivity"
     android:orientation="vertical"
-    android:background="#000">
+    android:background="#000"
+    android:id="@+id/mainLayout">
 
     <ImageView
         android:id="@+id/imageView"

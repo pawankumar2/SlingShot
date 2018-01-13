@@ -54,6 +54,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shot);
+        new Fullscreen(findViewById(R.id.shot1)).hideSystemUI();
         sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
         name = sp.getString("name","Unknown");
         pledge = sp.getString("image","Unknown");

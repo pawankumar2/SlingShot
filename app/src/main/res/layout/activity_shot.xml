@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.picshot.Shot"
-    android:background="#000">
+    android:background="#000"
+    android:id="@+id/shot1">
 
     <TextView
         android:id="@+id/textView"
