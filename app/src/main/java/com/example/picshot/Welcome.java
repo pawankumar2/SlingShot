@@ -410,8 +410,12 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
             image = BitmapFactory.decodeFile(path);
         else
             Log.i(TAG,"print path is null");
-        if(print)
+        if(print){
             print();
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putBoolean("print",false);
+            editor.commit();
+        }
         new Uploader2(getApplicationContext(),sp.getString("devicename",null));
         setBackground();
     }

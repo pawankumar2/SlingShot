@@ -143,7 +143,6 @@ public class Preview extends AppCompatActivity {
                         editor.putBoolean("print",true);
                     else
                         editor.putBoolean("print",false);
-                    editor.putString("image",newPath);
                     editor.commit();
                     startActivity(intent);
                     finish();
@@ -222,6 +221,7 @@ public class Preview extends AppCompatActivity {
                 newPath = pictureFile.getPath();
 
                 new Uploader().sendImage(newPath,ip);
+
                 return null;
             }
 
