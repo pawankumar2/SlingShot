@@ -40,21 +40,20 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     private float y;
     private float azimuth;
     private float pitch;
-    static final float ALPHA = 0.6f;
+    static final float ALPHA = 0.2f;
     private int SHAKE_THRESHOLD ;
     private String name;
     private String pledge;
     private String topic;
     private String tag;
     int i = 0;
-    int j[] = new int[50],k[] = new int[50];
+    int j[] = new int[100],k[] = new int[100];
     SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shot);
-        new Fullscreen(findViewById(R.id.shot1)).hideSystemUI();
         sp = getApplicationContext().getSharedPreferences("data",MODE_PRIVATE);
         name = sp.getString("name","Unknown");
         pledge = sp.getString("image","Unknown");
@@ -155,12 +154,12 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
 
 
         if (mags != null && accels != null) {
-            //if(i > 3 ){
+            if(i > 3 ){
             calc(0);
-//                i =0;
-//            }
-//            i++;
-            // Log.i(MainActivity.TAG," "+ i);
+                i =0;
+            }
+            i++;
+             Log.i(MainActivity.TAG," "+ i);
 
         }
 
@@ -176,6 +175,7 @@ public class Shot extends AppCompatActivity implements SensorEventListener {
     @Override
     protected void onResume() {
         super.onResume();
+        new Fullscreen(findViewById(R.id.shot1)).hideSystemUI();
         mSensorManager.registerListener( this, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL,SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
         if(!sp.getBoolean("lock",false))

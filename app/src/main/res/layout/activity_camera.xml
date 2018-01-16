@@ -72,7 +72,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_margin="10dp"
-            app:srcCompat="@mipmap/ic_flip_to_front_white_36dp" />
+            app:srcCompat="@mipmap/ic_flip_to_back_white_36dp" />
 
     </RelativeLayout>
 </LinearLayout>

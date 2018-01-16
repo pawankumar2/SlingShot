@@ -84,7 +84,6 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         new Permissions(getApplicationContext(),Welcome.this).takePhoto();
-        new Fullscreen(findViewById(R.id.welcome)).hideSystemUI();
         Button start = (Button) findViewById(R.id.start);
         sp = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
 
@@ -309,7 +308,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
                         connect(converted);
                     }
                     else if (n==2) {
-                        editor.putString("tag", converted);
+                        editor.putString("band_uid", converted);
                         //getUid(converted);
                         startActivity(new Intent(Welcome.this, CameraActivity.class));
                     }
@@ -398,6 +397,7 @@ public class Welcome extends AppCompatActivity implements SensorEventListener{
     @Override
     protected void onResume() {
         super.onResume();
+        new Fullscreen(findViewById(R.id.welcome)).hideSystemUI();
         invalidateOptionsMenu();
         String ip = sp.getString("mip",null);
         connect(ip);

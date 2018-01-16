@@ -51,7 +51,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
     SurfaceHolder surfaceHolder;
     private android.hardware.Camera.PictureCallback JPEGcallBack;
     Camera.Parameters params;
-    Boolean isfront = false;
+    Boolean isfront = true;
 
     private int [] _orientationHistory = new int[5];
     private int _orientationIndex;
@@ -82,7 +82,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
         capture = (FloatingActionButton) findViewById(R.id.capture);
         surfaceView = (SurfaceView) findViewById(R.id.cameraView);
         final int cameraCount = Camera.getNumberOfCameras();
-        new Fullscreen(findViewById(R.id.cameraLayout)).hideSystemUI();
         if(cameraCount == 1){
             changeCamera.setVisibility(View.GONE);
             changeCamera.setEnabled(false);
@@ -290,7 +289,6 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
             changeCamera.setEnabled(false);
             isfront = false;
         }
-
         changeCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -385,7 +383,7 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        isfront = getIntent().getBooleanExtra("isfront",false);
+        //isfront = getIntent().getBooleanExtra("isfront",false);
         if(isfront)
             changeCamera.setImageResource(R.mipmap.ic_flip_to_back_white_36dp);
         setCamera(isfront);
@@ -481,7 +479,8 @@ public class CameraActivity extends AppCompatActivity implements SurfaceHolder.C
 
     @Override
     protected void onResume() {
-        super.onResume();
+            super.onResume();
+            new Fullscreen(findViewById(R.id.cameraLayout)).hideSystemUI();
         orientationEventListener.enable();
     }
 

@@ -52,7 +52,7 @@ public class Uploader {
             public void onResponse(Call<ResponseBody> call, retrofit2.Response<ResponseBody> response) {
                 //Log.i(MainActivity.TAG,response.message());
                 try {
-                    Log.i(MainActivity.TAG,response.body().string());
+                        Log.i(MainActivity.TAG,response.body().string());
 
                 }  catch (IOException | NullPointerException  e) {
                     e.printStackTrace();

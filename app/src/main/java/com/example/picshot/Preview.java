@@ -103,7 +103,6 @@ public class Preview extends AppCompatActivity {
         });
         addImage();
         setBackground();
-        new Fullscreen(findViewById(R.id.previewActivity)).hideSystemUI();
 
     }
     public void setBackground(){
@@ -136,7 +135,7 @@ public class Preview extends AppCompatActivity {
                     editor.putString("name",fullName);
 
                     saveImage(m,n,ip);
-                    Intent intent = new Intent(Preview.this,Welcome.class);
+                    Intent intent = new Intent(Preview.this,Shot.class);
                     if(print.isChecked())
                         //Toast.makeText(getApplicationContext(),"printing...",Toast.LENGTH_SHORT).show();
                         // print();
@@ -273,6 +272,7 @@ public class Preview extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        new Fullscreen(findViewById(R.id.previewActivity)).hideSystemUI();
         MediaScannerConnection.scanFile(getApplicationContext(), new String[]{path}, new String[]{"image/jpeg"}, null);
 
     }
